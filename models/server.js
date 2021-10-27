@@ -1,13 +1,20 @@
 
 const express = require('express');
 const cors = require('cors');
+const { dbConnection } = require('../database/config');
 
 class Server {
 
     constructor() {
         this.app = express();
         this.port =  process.env.PORT;
-        this.usersPath = '/api/users';
+        this.paths = {
+            auth: '/api/auth',
+            users: '/api/users'
+        };
+
+        //DB connection
+        this.dbConnection();
 
         //middlewares
         this.middlewares();
@@ -16,11 +23,19 @@ class Server {
         this.routes();
     }
 
+    async dbConnection(){
+        //change by env
+        await dbConnection();
+    }
+
     middlewares() {
+
         //Json parse
         this.app.use( express.json() );
+
         //cors
         this.app.use( cors() );
+        
         //directorio publico
         this.app.use( express.static('public') );
     }
@@ -28,7 +43,8 @@ class Server {
 
     routes(){
         
-        this.app.use( '/api/users', require('../routes/users' ) );
+        this.app.use( this.paths.auth, require('../routes/auth' ) );
+        this.app.use( this.paths.users, require('../routes/users' ) );
     }
 
     listen() {

@@ -1,33 +1,84 @@
-const { response } = require('express');
+const { response, request } = require('express');
+const bcryptjs = require('bcryptjs');
 
-const getUsers = ( req, resp = response ) => {
-    return resp.json({
-        ok: true,
-        msg: 'get users'
+const User = require('../models/user');
+const { generateJwt } = require('../helpers/jwt');
+
+const usersGet = async(req = request, res = response) => {
+
+    const { limit = 5, at = 0 } = req.query;
+    const query = { estado: true };
+
+    const [ total, users ] = await Promise.all([
+        User.countDocuments(query),
+        User.find(query)
+            .skip( Number( at ) )
+            .limit(Number( limit ))
+    ]);
+
+    res.json({
+        total,
+        users
     });
 }
-const createUser = ( req, resp = response ) => {
-    return resp.json({
-        ok: true,
-        msg: 'create user'
+
+const usersPost = async(req, res = response) => {
+    
+    const { name, email, password, role } = req.body;
+    const user = new User({ name, email, password, role });
+
+    // Encriptar la contraseña
+    const salt = bcryptjs.genSaltSync();
+    user.password = bcryptjs.hashSync( password, salt );
+
+    // Guardar en BD
+    await user.save();
+
+    // Generar el JWT
+    const token = await generateJwt( user.id );
+
+    res.json({
+        user,
+        token
     });
 }
-const updateUser = ( req, resp = response ) => {
-    return resp.json({
-        ok: true,
-        msg: 'update user'
+
+const usersPut = async(req, res = response) => {
+
+    const { id } = req.params;
+    const { _id, password, correo, ...resto } = req.body;
+
+    if ( password ) {
+        // Encriptar la contraseña
+        const salt = bcryptjs.genSaltSync();
+        resto.password = bcryptjs.hashSync( password, salt );
+    }
+
+    const user = await User.findByIdAndUpdate( id, resto ).setOptions({ new: true });
+
+    res.json(user);
+}
+
+const usersPatch = (req, res = response) => {
+    res.json({
+        msg: 'patch API - usersPatch'
     });
 }
-const deleteUser = ( req, resp = response ) => {
-    return resp.json({
-        ok: true,
-        msg: 'delete User'
-    });
+
+const usersDelete = async(req, res = response) => {
+
+    const { id } = req.params;
+    const user = await User.findByIdAndUpdate( id, { estado: false } ).setOptions({new: true});
+
+    
+    res.json(user);
 }
+
 
 module.exports = {
-    getUsers,
-    createUser,
-    updateUser,
-    deleteUser,
+    usersGet,
+    usersPost,
+    usersPut,
+    usersPatch,
+    usersDelete,
 }
