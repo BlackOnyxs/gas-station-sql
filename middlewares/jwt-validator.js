@@ -1,11 +1,11 @@
 const { response } = require('express');
 const jwt = require('jsonwebtoken');
+const User = require('../models/user');
 
-const jwtValidate = (req, res = response, next) => {
+const jwtValidate = async(req, res = response, next) => {
 
     //x-api-key
     const token = req.header('x-token');
-  
 
     if ( !token ) {
         return res.status(401).json({
@@ -15,13 +15,28 @@ const jwtValidate = (req, res = response, next) => {
     }
 
     try {
-        const { uid, name } = jwt.verify(
+        const { uid } = jwt.verify(
             token,
             process.env.SEED
         );
         
-        req.uid = uid;
-        req.name = name;
+        const user = await User.findById(uid);
+        console.log(user)
+        if ( !user ) {
+            return res.status(401).json({
+                msg: 'Token no valido'
+            });
+        }
+
+        if ( !user.estado ) {
+            return res.status(401).json({
+                msg: 'Token no valido'
+            });
+        }
+
+        req.user = user;
+
+        next();
 
     } catch (error) {
         return res.status(401).json({
@@ -29,7 +44,6 @@ const jwtValidate = (req, res = response, next) => {
             msg: 'Token no válido'
         });
     }
-    next(  );
 }
 
 module.exports = {

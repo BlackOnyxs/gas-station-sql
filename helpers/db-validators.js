@@ -1,5 +1,6 @@
 const User = require("../models/user");
 const Role = require('../models/role');
+const { response } = require("express");
 
 const isValidRole = async( role = '' ) => {
     const existRol = await Role.findOne({ role });
@@ -7,6 +8,7 @@ const isValidRole = async( role = '' ) => {
         throw new Error(`The role ${ role } not found`)
     }
 }
+
 
 const emailExist = async( email = '' ) => {
     const emailExist = await User.findOne({ email });
