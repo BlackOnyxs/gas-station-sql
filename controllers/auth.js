@@ -6,7 +6,7 @@ const { generateJwt } = require('../helpers/jwt')
 
 const loginUser = async (req, res = response) => {
 
-    const {  email, password } = req.body;
+    const { email, password } = req.body;
     
     try {
         const user = await User.findOne({ email });
@@ -48,15 +48,11 @@ const loginUser = async (req, res = response) => {
 
 const renewToken = async (req, res = response) => {
 
-    const { uid, name } = req;
+    const token = await generateJwt( req.user._id );
     
-    const token = await generateJwt( uid, name );
-    
-   
     res.json({
         ok: true,
-        uid,
-        name,
+        uid: req.user._id,
         token
     })
 } 

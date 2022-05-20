@@ -24,8 +24,8 @@ router.get('/', usersGet );
 router.post(
     '/',
     [
-        jwtValidate,
-        isAdmin,
+        // jwtValidate,
+        // isAdmin,
         check('name', 'Name is required').not().isEmpty(),
         check('email', 'Email is required').isEmail(),
         check('email').custom( emailExist ),
