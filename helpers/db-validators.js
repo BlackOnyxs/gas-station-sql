@@ -4,6 +4,7 @@ const { response } = require("express");
 
 const isValidRole = async( role = '' ) => {
     const existRol = await Role.findOne({ role });
+    console.log(existRol)
     if ( !existRol ) {
         throw new Error(`The role ${ role } not found`)
     }

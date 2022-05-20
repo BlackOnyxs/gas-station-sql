@@ -7,7 +7,7 @@ const { generateJwt } = require('../helpers/jwt');
 const usersGet = async(req = request, res = response) => {
 
     const { limit = 5, at = 0 } = req.query;
-    const query = { estado: true };
+    const query = { status: true };
 
     const [ total, users ] = await Promise.all([
         User.countDocuments(query),
@@ -68,7 +68,7 @@ const usersPatch = (req, res = response) => {
 const usersDelete = async(req, res = response) => {
 
     const { id } = req.params;
-    const user = await User.findByIdAndUpdate( id, { estado: false } ).setOptions({new: true});
+    const user = await User.findByIdAndUpdate( id, { status: false } ).setOptions({new: true});
     
     res.json(user);
 }
