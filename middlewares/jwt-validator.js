@@ -21,14 +21,13 @@ const jwtValidate = async(req, res = response, next) => {
         );
         
         const user = await User.findById(uid);
-        console.log(user)
         if ( !user ) {
             return res.status(401).json({
                 msg: 'Token no valido'
             });
         }
 
-        if ( !user.estado ) {
+        if ( !user.status ) {
             return res.status(401).json({
                 msg: 'Token no valido'
             });

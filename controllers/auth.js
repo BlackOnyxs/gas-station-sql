@@ -21,7 +21,7 @@ const loginUser = async (req, res = response) => {
         const validPassword = bcrypt.compareSync( password, user.password );
 
         if ( !validPassword ) {
-            res.status(400).json({
+            return res.status(400).json({
                 ok: false,
                 msg: 'Usuario o contraseña no son correctos'
             });
@@ -29,7 +29,7 @@ const loginUser = async (req, res = response) => {
 
         const token = await generateJwt( user.id, user.name );
 
-        res.json({
+        return res.json({
             ok: true,
             uid: user.id,
             name: user.name,
@@ -39,7 +39,7 @@ const loginUser = async (req, res = response) => {
     } catch (error) {
         console.log(error);
 
-        res.status(500).json({
+        return res.status(500).json({
             ok: false,
             msg: 'Por favor comunicarse con el administrador.'
         });
@@ -47,12 +47,14 @@ const loginUser = async (req, res = response) => {
 } 
 
 const renewToken = async (req, res = response) => {
+    const { _id, name } = req.user;
 
-    const token = await generateJwt( req.user._id );
+    const token = await generateJwt( _id, name );
     
     res.json({
         ok: true,
-        uid: req.user._id,
+        uid: _id,
+        name,
         token
     })
 } 

@@ -15,7 +15,7 @@ const UserSchema = Schema({
         type: String,
         required: [true, 'Password is required.'],
     },
-    rol: {
+    role: {
         type: String,
         required: true,
         default: 'USER_ROLE',

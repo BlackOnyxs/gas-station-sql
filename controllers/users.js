@@ -16,7 +16,7 @@ const usersGet = async(req = request, res = response) => {
             .limit(Number( limit ))
     ]);
 
-    res.json({
+   return res.json({
         total,
         users
     });
@@ -37,7 +37,7 @@ const usersPost = async(req, res = response) => {
     // Generar el JWT
     const token = await generateJwt( user.id );
 
-    res.json({
+    return res.json({
         user,
         token
     });
