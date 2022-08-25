@@ -1,8 +1,8 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
 
-const { fuelsGet, fuelGetById, fuelPost, fuelPut, fuelDelete } = require('../controllers/fuel');
-const { jwtValidate, hasRole, fieldsValidator, isAdmin } = require('../middlewares');
+const { oilsGet, oilGetById, oilPost, oilPut, oilDelete } = require('../controllers/oil');
+const { fieldsValidator, isAdmin, jwtValidate, hasRole } = require('../middlewares');
 const { existObject } = require('../middlewares/db-validators');
 
 const router = Router();
@@ -11,15 +11,15 @@ router.get('/', [
     jwtValidate,
     hasRole('ADMIN_ROLE', 'SALE_ROLE'),
     fieldsValidator
-], fuelsGet );
+], oilsGet );
 
 router.get('/:id', [
     jwtValidate,
     hasRole('ADMIN_ROLE', 'SALE_ROLE'),
     check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'Fuel') ),
+    check('id').custom( id => existObject( id, 'Oil') ),
     fieldsValidator
-], fuelGetById );
+], oilGetById );
 
 router.post('/', [
     jwtValidate,
@@ -27,27 +27,29 @@ router.post('/', [
     check('name', 'Name is required').not().isEmpty(),
     check('price', 'Price is required').not().isEmpty(),
     fieldsValidator
-], fuelPost );
+], oilPost );
 
 router.put('/:id', [
     jwtValidate,
     isAdmin,
     check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'Fuel') ),
+    check('id').custom( id => existObject( id, 'Oil') ),
     check('name', 'Name is required').not().isEmpty(),
     check('price', 'Price is required').not().isEmpty(),
-    check('type', 'Type is required').not().isEmpty(),
-    check('octane', 'Octane is required').not().isEmpty(),
+    check('branch', 'Branch is required').not().isEmpty(),
+    check('viscosityGrade', 'Viscosity grade is required').not().isEmpty(),
     check('inventory', 'Inventory is required').not().isEmpty(),
+    check('size', 'Size is required').not().isEmpty(),
     fieldsValidator
-], fuelPut );
+], oilPut );
 
 router.delete('/:id', [
     jwtValidate,
     isAdmin,
     check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'Fuel') ),
+    check('id').custom( id => existObject( id, 'Oil') ),
     fieldsValidator
-], fuelDelete );
+], oilDelete );
+
 
 module.exports = router;

@@ -1,17 +1,37 @@
-const { Role, Fuel } = require('../models');
+const { Role, Fuel, Oil } = require('../models');
 
-const isValidRole = async( role = '' ) => {
-    const existRol = await Role.findOne({ role });
-    if ( !existRol ) {
-        throw new Error(`The role ${ role } not found`)
+// const isValidRole = async( role = '' ) => {
+//     const existRol = await Role.findOne({ role });
+//     if ( !existRol ) {
+//         throw new Error(`The role ${ role } not found`)
+//     }
+// }
+
+// const existFuelById= async( id = '' ) => {
+//     const existFuel = await Fuel.findById(id);
+//     if ( !existFuel ) {
+//         throw new Error(`The id ${ id } not found`);
+//     } 
+// }
+
+const existObject = async( id = '', collection = '' ) => {
+    let existObject = null;
+    switch (collection) {
+        case 'Fuel':
+            existObject = await Fuel.findById(id);
+            break;
+        case 'Oil':
+            existObject = await Oil.findById(id);
+            break;
+        case 'Role': 
+            existObject = await Role.findById(id);
+            break;
+        default:
+            throw new Error(`The collection ${ collection } not found`);;
     }
-}
-
-const existFuelById= async( id = '' ) => {
-    const existFuel = await Fuel.findById(id);
-    if ( !existFuel ) {
+    if ( !existObject ) {
         throw new Error(`The id ${ id } not found`);
-    } 
+    }
 }
 
 const allowedCollections = ( collection  = '', collections = [] ) => {
@@ -26,7 +46,8 @@ const allowedCollections = ( collection  = '', collections = [] ) => {
 }
 
 module.exports = {
-    isValidRole,
-    existFuelById,
+    // isValidRole,
+    // existFuelById,
+    existObject,
     allowedCollections,
 }
