@@ -12,6 +12,7 @@ class Server {
             auth: '/api/auth',
             fuels: '/api/fuels',
             oils: '/api/oils',
+            providers: '/api/providers',
             users: '/api/users',
         };
 
@@ -48,6 +49,7 @@ class Server {
         this.app.use( this.paths.auth, require('../routes/auth' ) );
         this.app.use( this.paths.fuels, require('../routes/fuel' ) );
         this.app.use( this.paths.oils, require('../routes/oil' ) );
+        this.app.use( this.paths.providers, require('../routes/provider' ) );
         this.app.use( this.paths.users, require('../routes/users' ) );
     }
 
