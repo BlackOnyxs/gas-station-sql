@@ -11,7 +11,8 @@ class Server {
         this.paths = {
             auth: '/api/auth',
             fuels: '/api/fuels',
-            users: '/api/users'
+            oils: '/api/oils',
+            users: '/api/users',
         };
 
         //DB connection
@@ -46,6 +47,7 @@ class Server {
         
         this.app.use( this.paths.auth, require('../routes/auth' ) );
         this.app.use( this.paths.fuels, require('../routes/fuel' ) );
+        this.app.use( this.paths.oils, require('../routes/oil' ) );
         this.app.use( this.paths.users, require('../routes/users' ) );
     }
 
