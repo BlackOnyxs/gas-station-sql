@@ -1,4 +1,4 @@
-const { Role, Fuel, Oil, Provider } = require('../models');
+const { Role, Fuel, Oil, Provider, Client } = require('../models');
 
 // const isValidRole = async( role = '' ) => {
 //     const existRol = await Role.findOne({ role });
@@ -17,6 +17,9 @@ const { Role, Fuel, Oil, Provider } = require('../models');
 const existObject = async( id = '', collection = '' ) => {
     let existObject = null;
     switch (collection) {
+        case 'Client':
+            existObject = await Client.findById(id);
+            break;
         case 'Fuel':
             existObject = await Fuel.findById(id);
             break;
