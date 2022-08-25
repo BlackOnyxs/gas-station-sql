@@ -76,7 +76,7 @@ const fuelPost = async( req, res = response ) => {
 
 const fuelPut = async(req, res = response) => {
     const { id } = req.params;
-    const { status, user, ...data } = req.body;
+    const { status, user, lastModifiedBy, lastModifiedAt, ...data } = req.body;
 
     data.user = req.user._id;
     data.lastModifiedBy = req.user._id;

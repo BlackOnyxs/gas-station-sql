@@ -30,6 +30,10 @@ const fuelSchema = Schema({
         type: String,
         default: ''
     },
+    status: {
+        type: Boolean,
+        default: true
+    },
     createdBy: {
         type: Schema.Types.ObjectId,
         ref: 'User',
