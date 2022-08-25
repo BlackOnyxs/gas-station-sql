@@ -14,6 +14,8 @@ class Server {
             fuels: '/api/fuels',
             oils: '/api/oils',
             providers: '/api/providers',
+            schedule: '/api/schedule',
+            turn: '/api/turns',
             users: '/api/users',
         };
 
@@ -52,6 +54,8 @@ class Server {
         this.app.use( this.paths.fuels, require('../routes/fuel' ) );
         this.app.use( this.paths.oils, require('../routes/oil' ) );
         this.app.use( this.paths.providers, require('../routes/provider' ) );
+        this.app.use( this.paths.schedule, require('../routes/schedule' ) );
+        this.app.use( this.paths.turn, require('../routes/turn' ) );
         this.app.use( this.paths.users, require('../routes/users' ) );
     }
 

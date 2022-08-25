@@ -1,23 +1,23 @@
 const { response } = require('express');
 const moment = require('moment');
 
-const { Provider } = require('../models');
+const { Turn } = require('../models');
 
-const providersGet = async( req, res = response ) => {
+const turnsGet = async( req, res = response ) => {
     const { limit = 5, at = 0 } = req.query;
     const query = { status: true };
 
     try {
-        const [ total, providers ] = await Promise.all([
-            Provider.countDocuments(query),
-            Provider.find(query)
+        const [ total, turns ] = await Promise.all([
+            Turn.countDocuments(query),
+            Turn.find(query)
                 .skip( Number( at ) )
                 .limit(Number( limit ))
         ]);
     
        return res.json({
             total,
-            providers
+            turns
         }); 
     } catch (error) {
         console.log(error)
@@ -27,44 +27,44 @@ const providersGet = async( req, res = response ) => {
     }
 }
 
-const providerGetById = async( req, res = response ) => {
+const turnGetById = async( req, res = response ) => {
     const { id } = req.params;
 
     try {
-        const provider = await Provider.findById(id)
+        const turn = await Turn.findById(id)
                                      .populate('createdBy', 'name');
-        return res.json( provider );
+        return res.json( turn );
     } catch (error) {
         console.log(error)
         return res.status(500).json({
-            msg: 'Error server.' 
+            msg: 'Error server :c call my creator pls' 
         })
     }
 }
 
-const providerPost = async( req, res = response ) => {
-    const { name, telefono } = req.body;
+const turnPost = async( req, res = response ) => {
+    const { startTime, endTime } = req.body;
 
     try {
 
-        const providerDB = await Provider.findOne({ name });
+        const turnDB = await Turn.findOne({ startTime, endTime });
 
-        if ( providerDB ) {
+        if ( turnDB ) {
             return res.status(400).json({
-                msg: `Provider ${ name } already exist.`
+                msg: `Turn ${ startTime } - ${ endTime } already exist.`
             })
         }
 
-        const provider = new Provider({name, telefono});
-        provider.createdBy = req.user._id;
-        provider.createdAt = moment().format('MMMM Do YYYY, h:mm:ss a');
-        provider.lastModifiedBy = req.user._id;
-        provider.lastModifiedAt = moment().format('MMMM Do YYYY, h:mm:ss a');
+        const turn = new Turn({startTime, endTime});
+        turn.createdBy = req.user._id;
+        turn.createdAt = moment().format('MMMM Do YYYY, h:mm:ss a');
+        turn.lastModifiedBy = req.user._id;
+        turn.lastModifiedAt = moment().format('MMMM Do YYYY, h:mm:ss a');
 
-        provider.save();
+        turn.save();
 
         return res.status(201).json({
-            provider
+            turn
         });
     } catch(error) {
         console.log(error)
@@ -74,7 +74,7 @@ const providerPost = async( req, res = response ) => {
     }
 }
 
-const providerPut = async( req, res = response ) => {
+const turnPut = async( req, res = response ) => {
     const { id } = req.params;
     const { status, user, lastModifiedBy, lastModifiedAt, ...data } = req.body;
 
@@ -83,10 +83,10 @@ const providerPut = async( req, res = response ) => {
     data.lastModifiedAt = moment().format('MMMM Do YYYY, h:mm:ss a')
 
     try {
-        const updatedProvider = await Provider.findByIdAndUpdate(id, data, { new: true })
+        const updatedTurn = await Turn.findByIdAndUpdate(id, data, { new: true })
                                             .populate('createdBy', 'name');
                                             
-        res.json( updatedProvider );
+        res.json( updatedTurn );
     } catch (error) {
         console.log(error)
         return res.status(500).json({
@@ -95,18 +95,18 @@ const providerPut = async( req, res = response ) => {
     }
 }
 
-const providerDelete = async( req, res = response ) => {
+const turnDelete = async( req, res = response ) => {
     const { id } = req.params;
 
     try {
-        const deletedProvider = await Provider.findByIdAndUpdate( id, 
+        const deletedTurn = await Turn.findByIdAndUpdate( id, 
             { 
                 status: false,
                 lastModifiedBy: req.user._id,
                 datalastModifiedAt: moment().format('MMMM Do YYYY, h:mm:ss a')
             },
             { new: true });
-        res.json( deletedProvider );
+        res.json( deletedTurn );
 
     } catch (error) {
         console.log(error)
@@ -117,9 +117,12 @@ const providerDelete = async( req, res = response ) => {
 }
 
 module.exports = {
-    providersGet,
-    providerGetById,
-    providerPost,
-    providerPut,
-    providerDelete,
+    turnsGet,
+    turnGetById,
+    turnPost,
+    turnPut,
+    turnDelete,
 }
+
+
+
