@@ -5,6 +5,8 @@ const Oil = require('./oil');
 const Provider = require('./provider');
 const Role = require('./role');
 const Server = require('./server');
+const Schedule = require('./schedule');
+const Turn = require('./turn');
 const User = require('./user');
 
 module.exports = {
@@ -14,5 +16,7 @@ module.exports = {
     Provider,
     Role,
     Server,
+    Schedule,
+    Turn,
     User,
 }

@@ -1,4 +1,4 @@
-const { Role, Fuel, Oil, Provider, Client } = require('../models');
+const { Role, Fuel, Oil, Provider, Client, Turn, Schedule, User } = require('../models');
 
 // const isValidRole = async( role = '' ) => {
 //     const existRol = await Role.findOne({ role });
@@ -31,6 +31,15 @@ const existObject = async( id = '', collection = '' ) => {
             break;
         case 'Role': 
             existObject = await Role.findById(id);
+            break;
+        case 'Schedule': 
+            existObject = await Schedule.findById(id);
+            break;
+        case 'Turn': 
+            existObject = await Turn.findById(id);
+            break;
+        case 'User': 
+            existObject = await User.findById(id);
             break;
         default:
             throw new Error(`The collection ${ collection } not found`);;

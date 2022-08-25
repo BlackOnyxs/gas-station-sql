@@ -9,13 +9,13 @@ const router = Router();
 
 router.get('/', [
     jwtValidate,
-    hasRole('ADMIN_ROLE', 'SALE_ROLE'),
+    isAdmin,
     fieldsValidator
 ], providersGet );
 
 router.get('/:id', [
     jwtValidate,
-    hasRole('ADMIN_ROLE', 'SALE_ROLE'),
+    isAdmin,
     check('id', 'Error Id').isMongoId(),
     check('id').custom( id => existObject( id, 'Provider') ),
     fieldsValidator
