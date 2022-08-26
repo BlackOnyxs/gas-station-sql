@@ -24,12 +24,13 @@ router.get('/', usersGet );
 router.post(
     '/',
     [
-        // jwtValidate,
-        // isAdmin,
+        jwtValidate,
+        isAdmin,
         check('name', 'Name is required').not().isEmpty(),
         check('email', 'Email is required').isEmail(),
         check('email').custom( emailExist ),
         check('password', 'Password must be greater than 6 characters.').isLength({min: 6}),
+        // check('password', 'Password is not secure.').isStrongPassword(),
         check('role').custom( isValidRole ),
         fieldsValidator
     ],

@@ -43,7 +43,7 @@ const fuelGetById = async( req, res = response ) => {
 }
 
 const fuelPost = async( req, res = response ) => {
-    const { name, price, type, octane, inventory, image } = req.body;
+    const { name, buyPrice, sellPrice, type, octane, inventory, image } = req.body;
 
     try {
 
@@ -55,7 +55,7 @@ const fuelPost = async( req, res = response ) => {
             })
         }
 
-        const fuel = new Fuel({name, price, type, octane, inventory, image});
+        const fuel = new Fuel({name, buyPrice, sellPrice, type, octane, inventory, image});
         fuel.createdBy = req.user._id;
         fuel.createdAt = moment().format('MMMM Do YYYY, h:mm:ss a');
         fuel.lastModifiedBy = req.user._id;
