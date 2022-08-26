@@ -1,24 +1,31 @@
-const { Role, Fuel, Oil, Provider, Client, Turn, Schedule, User } = require('../models');
-
-// const isValidRole = async( role = '' ) => {
-//     const existRol = await Role.findOne({ role });
-//     if ( !existRol ) {
-//         throw new Error(`The role ${ role } not found`)
-//     }
-// }
-
-// const existFuelById= async( id = '' ) => {
-//     const existFuel = await Fuel.findById(id);
-//     if ( !existFuel ) {
-//         throw new Error(`The id ${ id } not found`);
-//     } 
-// }
+const { 
+    Role, 
+    Fuel, 
+    Oil, 
+    Provider, 
+    Client, 
+    Turn, 
+    Schedule, 
+    User, 
+    SellInvoice, 
+    BuyInvoice
+} = require('../models');
 
 const existObject = async( id = '', collection = '' ) => {
     let existObject = null;
     switch (collection) {
+        case 'BuyInvoice':
+            existObject = await BuyInvoice.findById(id);
+            break;
         case 'Client':
-            existObject = await Client.findById(id);
+            if ( id.length < 1 ) {
+                existObject = await Client.find({ name: 'Default'});
+                if ( !existObject ) {
+                    throw new Error(`Default client not found. Please created it.`);
+                }
+            }else {
+                existObject = await Client.findById(id);
+            }
             break;
         case 'Fuel':
             existObject = await Fuel.findById(id);
@@ -35,6 +42,9 @@ const existObject = async( id = '', collection = '' ) => {
         case 'Schedule': 
             existObject = await Schedule.findById(id);
             break;
+        case 'SellInvoice': 
+            existObject = await SellInvoice.findById(id);
+            break;
         case 'Turn': 
             existObject = await Turn.findById(id);
             break;
@@ -42,7 +52,7 @@ const existObject = async( id = '', collection = '' ) => {
             existObject = await User.findById(id);
             break;
         default:
-            throw new Error(`The collection ${ collection } not found`);;
+            throw new Error(`The collection ${ collection } not found`);
     }
     if ( !existObject ) {
         throw new Error(`The id ${ id } not found`);
@@ -60,9 +70,19 @@ const allowedCollections = ( collection  = '', collections = [] ) => {
     return true;
 }
 
+const existProduct = async( id = '' ) => {
+    let existProduct = null;
+    existProduct = await Fuel.findById(id);
+    if ( !existProduct ) {
+        existProduct = await Oil.findById(id);
+    }
+    if ( !existProduct ) {
+        throw new Error(`The product with id ${ id } not found`);
+    }
+}
+
 module.exports = {
-    // isValidRole,
-    // existFuelById,
     existObject,
+    existProduct,
     allowedCollections,
 }

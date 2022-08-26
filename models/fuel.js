@@ -6,9 +6,13 @@ const fuelSchema = Schema({
         type: String,
         required: [true, 'name is required']
     },
-    price: {
+    buyPrice: {
         type: Number,
-        required: [true, 'price is required']
+        required: [true, 'buyPrice is required']
+    },
+    sellPrice: {
+        type: Number,
+        required: [true, 'sellPrice is required']
     },
     type: {
         type: String,
