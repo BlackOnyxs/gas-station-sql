@@ -1,7 +1,8 @@
 const { response } = require('express');
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
-const { generateJwt } = require('../helpers/jwt')
+const { generateJwt } = require('../helpers/jwt');
+const { dbConnection } = require('../database/config');
     
 
 const loginUser = async (req, res = response) => {
@@ -9,8 +10,10 @@ const loginUser = async (req, res = response) => {
     const { email, password } = req.body;
     
     try {
-        const user = await User.findOne({ email });
-
+        // const user = await User.findOne({ email });
+        const user = await dbConnection.query(`select * from Colaborador where usuario = '${ email }'`)
+        console.log(user)
+        
         if ( !user ) {
             return res.status(400).json({
                 ok: false,

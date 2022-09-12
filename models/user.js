@@ -1,69 +1,50 @@
+const { DataTypes } = require('sequelize');
+const { dbConnection } = require('../database/config');
+const { RoleSchema } = require('./role');
 
-const { Schema, model } = require('mongoose');
 
-const UserSchema = Schema({
-    name: {
-        type: String,
-        required: [true, 'Name is required.']
+const User = dbConnection.define('Colaborador', {
+    codigo_cedula: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+        primaryKey: true
     },
-    cip: {
-        type: String,
-        required: [true, 'CIP is required.']
-    },
-    phone: {
-        type: String,
-        required: [true, 'phone is required.'],
+    nombre: {
+        type: DataTypes.STRING,
+        allowNull: false,
         unique: true
     },
-    email: {
-        type: String,
-        required: [true, 'Email is required.'],
+    
+    apellido: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    telefono: {
+        type: DataTypes.STRING,
+        allowNull: false,
         unique: true
     },
-    password: {
-        type: String,
-        required: [true, 'Password is required.'],
+    clave: {
+        type: DataTypes.STRING,
+        allowNull: false,
     },
-    role: {
-        type: String,
-        required: true,
-        default: 'USER_ROLE',
-        emun: ['ADMIN_ROLE', 'USER_ROLE']
+    rol: {
+        type: DataTypes.STRING,
+        model: RoleSchema,
+        defaultValueValue: 'USER_ROLE',
+        values: ['ADMIN_ROLE', 'USER_ROLE']
     },
-    img: {
-        type: String,
-        default: ''
+    usuario: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true
     },
-    status: {
-        type: Boolean,
-        default: true
-    },
-    createdBy: {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    createdAt: {
-        type: String,
-        required: [true, 'createdAt is required.'],
-    },
-    lastModifiedBy: {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    lastModifiedAt: {
-        type: String,
-        required: [true, 'lastModifiedAt is required.'],
-    },
+    
+}, {
+    freezeTableName: true
 });
 
 
 
-UserSchema.methods.toJSON = function() {
-    const { __v, password, _id, ...user  } = this.toObject();
-    user.uid = _id;
-    return user;
-}
-
-module.exports = model( 'User', UserSchema );
+module.exports = { User };

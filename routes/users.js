@@ -21,8 +21,8 @@ const { existObject } = require('../middlewares/db-validators');
 const router = Router();
 
 router.get('/', [
-    jwtValidate,
-    isAdmin,
+    // jwtValidate,
+    // isAdmin,
     fieldsValidator
 ], usersGet );
 
@@ -45,7 +45,7 @@ router.post(
         check('cip','cip is required').not().isEmpty(),
         check('phone','phone is required').not().isEmpty(),
         check('password', 'Password must be greater than 6 characters.').isLength({min: 6}),
-        check('password', 'Password is not secure.').isStrongPassword(),
+        // check('password', 'Password is not secure.').isStrongPassword(),
         check('role').custom( isValidRole ),
         fieldsValidator
     ],
