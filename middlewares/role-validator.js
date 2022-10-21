@@ -8,9 +8,9 @@ const isAdmin = ( req, res = response, next ) => {
         });
     }
 
-    const { role, name } = req.user;
+    const { rol, name } = req.user;
 
-    if ( role !== 'ADMIN_ROLE' ) {
+    if ( rol !== 'ADMIN_ROLE' ) {
         return res.status(401).json({
             msg: `${ name } no es administrador.`
         });
@@ -28,7 +28,7 @@ const hasRole = ( ...roles ) => {
             });
         }
 
-        if ( !roles.includes( req.user.role ) ) {
+        if ( !roles.includes( req.user.rol ) ) {
             return res.status(401).json({
                 msg: `El servicio requiere uno de estos roles ${ roles }`
              });

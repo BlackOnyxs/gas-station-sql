@@ -25,18 +25,20 @@ router.post('/', [
     jwtValidate,
     isAdmin,
     check('name', 'Name is required').not().isEmpty(),
-    check('price', 'Price is required').not().isEmpty(),
+    check('sellPrice', 'Price is required').not().isEmpty(),
+    // check('type', 'Type is required').not().isEmpty(),
+    check('octane', 'Octane is required').not().isEmpty(),
+    check('inventory', 'Inventory is required').not().isEmpty(),
     fieldsValidator
 ], fuelPost );
 
 router.put('/:id', [
     jwtValidate,
     isAdmin,
-    check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'Fuel') ),
+    check('id', 'El id es requerido').not().isEmpty(),
     check('name', 'Name is required').not().isEmpty(),
-    check('price', 'Price is required').not().isEmpty(),
-    check('type', 'Type is required').not().isEmpty(),
+    check('sellPrice', 'Price is required').not().isEmpty(),
+    // check('type', 'Type is required').not().isEmpty(),
     check('octane', 'Octane is required').not().isEmpty(),
     check('inventory', 'Inventory is required').not().isEmpty(),
     fieldsValidator
@@ -45,8 +47,8 @@ router.put('/:id', [
 router.delete('/:id', [
     jwtValidate,
     isAdmin,
-    check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'Fuel') ),
+    check('id', 'El id es requerido').not().isEmpty(),
+    // check('id').custom( id => existObject( id, 'Fuel') ),
     fieldsValidator
 ], fuelDelete );
 

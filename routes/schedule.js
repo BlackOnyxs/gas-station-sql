@@ -24,10 +24,8 @@ router.get('/:id', [
 router.post('/', [
     jwtValidate,
     isAdmin,
-    check('turn', 'Error Id').isMongoId(),
-    check('turn').custom( turn => existObject( turn, 'Turn') ),
-    check('dispenser', 'Error Id').isMongoId(),
-    check('dispenser').custom( dispenser => existObject( dispenser, 'User') ),
+    check('turn', 'El turno es requerido').not().isEmpty(),
+    check('dispenser','El dispenser es requerido').not().isEmpty(),
     check('date', 'date is required').not().isEmpty(),
     fieldsValidator
 ], schedulePost );
@@ -35,21 +33,19 @@ router.post('/', [
 router.put('/:id', [
     jwtValidate,
     isAdmin,
-    check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'Schedule') ),
-    check('turn', 'Error Id').isMongoId(),
-    check('turn').custom( turn => existObject( turn, 'Turn') ),
-    check('dispenser', 'Error Id').isMongoId(),
-    check('dispenser').custom( dispenser => existObject( dispenser, 'User') ),
+    // check('id', 'El id es requerido').not().isEmpty(),
+    check('turn', 'El turno es requerido').not().isEmpty(),
+    check('dispenser', 'El despachador es requerido').not().isEmpty(),
     check('date', 'date is required').not().isEmpty(),
     fieldsValidator
 ], schedulePut );
 
-router.delete('/:id', [
+router.post('/delete', [
     jwtValidate,
     isAdmin,
-    check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'Schedule') ),
+    // check('id', 'El id es requerido').not().isEmpty(),
+    check('turn', 'El turno es requerido').not().isEmpty(),
+    check('dispenser', 'El despachador es requerido').not().isEmpty(),
     fieldsValidator
 ], scheduleDelete );
 

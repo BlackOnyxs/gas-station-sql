@@ -1,24 +1,20 @@
 const { response } = require('express');
 const moment = require('moment');
+const { uuid } = require('uuidv4');
+const { dbConnection } = require('../database/config');
+const { fuelResponse } = require('../helpers/responsesql');
 
 const { Fuel } = require('../models');
 
 const fuelsGet = async( req, res = response) => {
     const { limit = 5, at = 0 } = req.query;
-    const query = { status: true };
 
     try {
-        const [ total, fuels ] = await Promise.all([
-            Fuel.countDocuments(query),
-            Fuel.find(query)
-                .skip( Number( at ) )
-                .limit(Number( limit ))
-        ]);
-    
-       return res.json({
-            total,
-            fuels
-        }); 
+        const [ fuels, count ] = await dbConnection.query(`exec Combustible_listaActivos ${limit}, ${at}`);
+        return res.json({
+            fuels:  fuelResponse(fuels),
+            count
+        });
     } catch (error) {
         console.log(error)
         return res.status(500).json({
@@ -43,26 +39,23 @@ const fuelGetById = async( req, res = response ) => {
 }
 
 const fuelPost = async( req, res = response ) => {
-    const { name, buyPrice, sellPrice, type, octane, inventory, image } = req.body;
+    const { name, sellPrice, type, octane, inventory } = req.body;
 
     try {
-
-        const fuelDB = await Fuel.findOne({ name });
-
-        if ( fuelDB ) {
-            return res.status(400).json({
-                msg: `Fuel ${ name } already exist.`
-            })
+        const [ resp ] = await dbConnection.query(`exec Combustible_Crear '${uuid()}', ${sellPrice}, ${inventory}, '${octane}', '${name}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`);
+        if ( resp[0].ErrorMessage ) {
+            if ( resp[0].ErrorNumber === 50000 ) {
+                return res.status(400).json({
+                    msg: resp[0].ErrorMessage
+                })
+            }
+            return res.status(500).json({
+                msg: resp[0].ErrorMessage,
+                numer: resp[0].ErrorNumber
+            });
         }
-
-        const fuel = new Fuel({name, buyPrice, sellPrice, type, octane, inventory, image});
-        fuel.createdBy = req.user._id;
-        fuel.createdAt = moment().format('MMMM Do YYYY, h:mm:ss a');
-        fuel.lastModifiedBy = req.user._id;
-        fuel.lastModifiedAt = moment().format('MMMM Do YYYY, h:mm:ss a');
-
-        fuel.save();
-
+        
+        const fuel = fuelResponse(resp[0]);
         return res.status(201).json({
             fuel
         });
@@ -79,14 +72,27 @@ const fuelPut = async(req, res = response) => {
     const { status, user, lastModifiedBy, lastModifiedAt, ...data } = req.body;
 
     data.user = req.user._id;
-    data.lastModifiedBy = req.user._id;
-    data.lastModifiedAt = moment().format('MMMM Do YYYY, h:mm:ss a')
+    data.updatedBy = req.user._id;
+    data.updatedAt = moment().format('YYYY/MM/DD');
 
     try {
-        const updatedFuel = await Fuel.findByIdAndUpdate(id, data, { new: true })
-                                            .populate('createdBy', 'name');
-                                            
-        res.json( updatedFuel );
+        const [ resp ] = await dbConnection.query(`exec Combustible_Actualizar '${id}', ${data.sellPrice}, ${data.inventory}, '${data.octane}', '${data.name}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`);
+        if ( resp[0].ErrorMessage ) {
+            if ( resp[0].ErrorNumber === 50000 ) {
+                return res.status(400).json({
+                    msg: resp[0].ErrorMessage
+                })
+            }
+            return res.status(500).json({
+                msg: resp[0].ErrorMessage,
+                numer: resp[0].ErrorNumber
+            });
+        }
+        
+        const updatedFuel = fuelResponse(resp[0]);
+        return res.status(201).json({
+            updatedFuel
+        });
     } catch (error) {
         console.log(error)
         return res.status(500).json({
@@ -99,15 +105,23 @@ const fuelDelete = async(req, res = response) => {
     const { id } = req.params;
 
     try {
-        const deletedFuel = await Fuel.findByIdAndUpdate( id, 
-            { 
-                status: false,
-                lastModifiedBy: req.user._id,
-                datalastModifiedAt: moment().format('MMMM Do YYYY, h:mm:ss a')
-            },
-            { new: true });
-        res.json( deletedFuel );
-
+        const [ resp ] = await dbConnection.query(`exec Combustible_Eliminar '${id}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`);
+        if ( resp[0].ErrorMessage ) {
+            if ( resp[0].ErrorNumber === 50000 ) {
+                return res.status(400).json({
+                    msg: resp[0].ErrorMessage
+                })
+            }
+            return res.status(500).json({
+                msg: resp[0].ErrorMessage,
+                numer: resp[0].ErrorNumber
+            });
+        }
+        
+        const deletedFuel = fuelResponse(resp[0]);
+        return res.status(201).json({
+            deletedFuel
+        });
     } catch (error) {
         console.log(error)
         return res.status(500).json({

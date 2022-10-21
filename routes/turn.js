@@ -2,22 +2,21 @@ const { Router } = require('express');
 const { check } = require('express-validator');
 
 const { turnsGet, turnGetById, turnPost, turnPut, turnDelete } = require('../controllers/turn');
-const { jwtValidate, hasRole, fieldsValidator, isAdmin } = require('../middlewares');
+const { jwtValidate, fieldsValidator, isAdmin } = require('../middlewares');
 const { existObject } = require('../middlewares/db-validators');
 
 const router = Router();
 
 router.get('/', [
     jwtValidate,
-    hasRole('ADMIN_ROLE', 'SALE_ROLE'),
+    isAdmin,
     fieldsValidator
 ], turnsGet );
 
 router.get('/:id', [
     jwtValidate,
-    hasRole('ADMIN_ROLE', 'SALE_ROLE'),
-    check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'Turn') ),
+    isAdmin,
+    check('id', 'El id es requerido').not().isEmpty(),
     fieldsValidator
 ], turnGetById );
 
@@ -32,8 +31,7 @@ router.post('/', [
 router.put('/:id', [
     jwtValidate,
     isAdmin,
-    check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'Turn') ),
+    check('id', 'El id es requerido').not().isEmpty(),
     check('startTime', 'startTime is required').not().isEmpty(),
     check('endTime', 'endTime is required').not().isEmpty(),
     fieldsValidator
@@ -42,8 +40,7 @@ router.put('/:id', [
 router.delete('/:id', [
     jwtValidate,
     isAdmin,
-    check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'Turn') ),
+    check('id', 'El id es requerido').not().isEmpty(),
     fieldsValidator
 ], turnDelete );
 

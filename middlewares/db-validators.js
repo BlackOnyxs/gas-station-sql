@@ -1,3 +1,4 @@
+const { dbConnection } = require('../database/config');
 const { 
     Role, 
     Fuel, 
@@ -11,8 +12,11 @@ const {
     BuyInvoice
 } = require('../models');
 
+const validRoles = [ 'ADMIN_ROLE', 'DISPENSER_ROLE', 'SECRETARY_ROLE'];
+
 const existObject = async( id = '', collection = '' ) => {
     let existObject = null;
+    console.log({id, collection})
     switch (collection) {
         case 'BuyInvoice':
             existObject = await BuyInvoice.findById(id);
@@ -49,7 +53,7 @@ const existObject = async( id = '', collection = '' ) => {
             existObject = await Turn.findById(id);
             break;
         case 'User': 
-            existObject = await User.findById(id);
+            existObject = await dbConnection.query(`exec ObtenerColaboradorPK '${ id }'`);
             break;
         default:
             throw new Error(`The collection ${ collection } not found`);
@@ -70,6 +74,13 @@ const allowedCollections = ( collection  = '', collections = [] ) => {
     return true;
 }
 
+const isValidRole = ( role = '' ) => {
+    const isIncluded = validRoles.includes( role );
+    if ( !isIncluded ) {
+        throw new Error(`El rol ${role} no es un rol valido.`);
+    }
+}
+
 const existProduct = async( id = '' ) => {
     let existProduct = null;
     existProduct = await Fuel.findById(id);
@@ -81,8 +92,22 @@ const existProduct = async( id = '' ) => {
     }
 }
 
+
+const emailExist = async( email = '' ) => {
+    try {
+        const [resp] = await dbConnection.query(`exec ExisteColaboradorEmail '${ email }'`);
+        throw new Error(resp[0].ErrorMessage)
+    } catch (error) {
+        console.log( error )
+        throw new Error(error)
+    }
+    
+}
+
 module.exports = {
+    allowedCollections,
     existObject,
     existProduct,
-    allowedCollections,
+    emailExist,
+    isValidRole,
 }
