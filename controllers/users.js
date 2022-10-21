@@ -2,39 +2,35 @@ const { response, request } = require('express');
 const bcryptjs = require('bcryptjs');
 const moment = require('moment');
 
-const User = require('../models/user');
 const { generateJwt } = require('../helpers/jwt');
+const { dbConnection } = require('../database/config');
+const { userReponse } = require('../helpers/responsesql');
 
 const usersGet = async(req = request, res = response) => {
 
-    try {
-        const { limit = 5, at = 0 } = req.query;
-        const query = { status: true };
+    const { limit = 5, at = 0 } = req.query;
 
-        const [ total, users ] = await Promise.all([
-            User.countDocuments(query),
-            User.find(query)
-                .skip( Number( at ) )
-                .limit(Number( limit ))
-        ]);
+   try {
+    // const { count, rows }= await User.findAndCountAll({ limit: Number(limit), offset: Number(at)});
+    const [users, count]= await dbConnection.query(`exec ObtenerColaboradoresPaginado ${ Number(limit) }, ${ Number(at) }`);
+    return res.json({ count, users: userReponse(users) })
+   } catch (error) {
+    console.log(error)
+    return res.status(500).json({
+        msg: 'Error server.' 
+    });
+   }
 
-        return res.json({
-             total,
-             users
-         });
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({
-            msg: 'Error server.' 
-        });
-    }
+   
 }
 
 const userGetById = async( req, res = response ) => {
     const { id } = req.params;
 
     try {
-        const user = await User.findById( id );
+        // const user = await User.findByPk(id);
+        const [ dbUser] = await dbConnection.query(`exec ObtenerColaboradorPK '${ id }'`);
+        let user = userReponse(dbUser[0]);
         return res.json(user);
     } catch (error) {
         console.log(error)
@@ -45,21 +41,22 @@ const userGetById = async( req, res = response ) => {
 }
 
 const usersPost = async(req, res = response) => {
-    const { name, email, password, role, cip, phone, img } = req.body;
+    let { name, email, password, role, cip, phone, img } = req.body;
+    // console.log({cip, creator: req.user.codigo_cedula})
     try {
-        
-        const user = new User({ name, email, password, role, cip, phone, img });
-    
         const salt = bcryptjs.genSaltSync();
-        user.password = bcryptjs.hashSync( password, salt );
-        user.createdBy = req.user._id;
-        user.createdAt = moment().format('MMMM Do YYYY, h:mm:ss a');
-        user.lastModifiedBy = req.user._id;
-        user.lastModifiedAt = moment().format('MMMM Do YYYY, h:mm:ss a');
-    
-        await user.save();
-    
-        // Generar el JWT
+        password = bcryptjs.hashSync( password, salt );
+
+        const newName = name.split(" ")
+        const [ resp ] = await dbConnection.query(`exec spCrearColaborador '${cip}', '${role}', '${newName[0]}', '${newName[1]}', '${email}', '${password}', '${phone}','${moment().format('YYYY/MM/DD')}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`);
+        if ( resp[0].ErrorMessage ) {
+            return res.status(500).json({
+                msg: resp[0].ErrorMessage,
+                numer: resp[0].ErrorNumber
+            });
+        }
+        const user = userReponse(resp[0])
+
         const token = await generateJwt( user.id );
     
         return res.json({
@@ -77,7 +74,7 @@ const usersPost = async(req, res = response) => {
 const usersPut = async(req, res = response) => {
 
     const { id } = req.params;
-    const { _id, password, correo, ...data } = req.body;
+    let { password, email, ...data } = req.body;
 
     try {
         if ( password ) {
@@ -86,13 +83,16 @@ const usersPut = async(req, res = response) => {
             data.password = bcryptjs.hashSync( password, salt );
         }
 
-        data.user = req.user._id;
-        data.lastModifiedBy = req.user._id;
-        data.lastModifiedAt = moment().format('MMMM Do YYYY, h:mm:ss a')
+        const newName = data.name.split(" ")
     
-        const user = await User.findByIdAndUpdate( id, data ).setOptions({ new: true })
-                                populate('createdBy', 'name');
-    
+        const [ resp ] = await dbConnection.query(`exec spActualizarColaborador '${id}', '${data.role}', '${newName[0]}', '${newName[1]}', '${email}', '${data.password}', '${data.phone}','${data.createdAt}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}', ${ data.status }`)
+        if ( resp[0].ErrorMessage ) {
+            return res.status(500).json({
+                msg: resp[0].ErrorMessage,
+                numer: resp[0].ErrorNumber
+            });
+        }
+        const user = userReponse(resp[0])
         return res.json(user);
     } catch (error) {
         console.log(error)
@@ -103,18 +103,19 @@ const usersPut = async(req, res = response) => {
 
 }
 
-
 const usersDelete = async(req, res = response) => {
     const { id } = req.params;
 
     try {
-        const user = await User.findByIdAndUpdate( id, 
-            { 
-                status: false,
-                lastModifiedBy: req.user._id,
-                datalastModifiedAt: moment().format('MMMM Do YYYY, h:mm:ss a')
-            },
-            { new: true} );
+        const [ resp ] = await dbConnection.query(`exec spEliminarColaborador '${ id }'`);
+        if ( resp[0].ErrorMessage ) {
+            return res.status(500).json({
+                msg: resp[0].ErrorMessage,
+                numer: resp[0].ErrorNumber
+            });
+        }
+        
+        const user = userReponse(resp[0]);
 
         return res.json(user);
     } catch (error) {

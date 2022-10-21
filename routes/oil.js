@@ -16,8 +16,7 @@ router.get('/', [
 router.get('/:id', [
     jwtValidate,
     hasRole('ADMIN_ROLE', 'SALE_ROLE'),
-    check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'Oil') ),
+    check('id', 'El id es requerido').not().isEmpty(),
     fieldsValidator
 ], oilGetById );
 
@@ -26,19 +25,22 @@ router.post('/', [
     isAdmin,
     check('name', 'Name is required').not().isEmpty(),
     check('price', 'Price is required').not().isEmpty(),
+    check('branch', 'Branch is required').not().isEmpty(),
+    check('viscosityGrade', 'Viscosity grade is required').not().isEmpty(),
+    check('type', 'type is required').not().isEmpty(),
+    check('size', 'Size is required').not().isEmpty(),
     fieldsValidator
 ], oilPost );
 
 router.put('/:id', [
     jwtValidate,
     isAdmin,
-    check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'Oil') ),
+    check('id', 'El id es requerido').not().isEmpty(),
     check('name', 'Name is required').not().isEmpty(),
     check('price', 'Price is required').not().isEmpty(),
     check('branch', 'Branch is required').not().isEmpty(),
     check('viscosityGrade', 'Viscosity grade is required').not().isEmpty(),
-    check('inventory', 'Inventory is required').not().isEmpty(),
+    check('type', 'type is required').not().isEmpty(),
     check('size', 'Size is required').not().isEmpty(),
     fieldsValidator
 ], oilPut );
@@ -46,8 +48,7 @@ router.put('/:id', [
 router.delete('/:id', [
     jwtValidate,
     isAdmin,
-    check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'Oil') ),
+    check('id', 'El id es requerido').not().isEmpty(),
     fieldsValidator
 ], oilDelete );
 

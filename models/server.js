@@ -32,8 +32,13 @@ class Server {
     }
 
     async dbConnection(){
-        //change by env
-        await dbConnection();
+        try {
+            await dbConnection.authenticate();
+            console.log('DB online')
+        } catch (error) {
+            throw new Error( error );
+        }
+        
     }
 
     middlewares() {

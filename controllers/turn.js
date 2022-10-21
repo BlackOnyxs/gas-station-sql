@@ -1,24 +1,18 @@
 const { response } = require('express');
+const { uuid } = require('uuidv4');
 const moment = require('moment');
+const { dbConnection } = require('../database/config');
+const { turnResponse } = require('../helpers/responsesql');
 
 const { Turn } = require('../models');
 
 const turnsGet = async( req, res = response ) => {
     const { limit = 5, at = 0 } = req.query;
-    const query = { status: true };
 
     try {
-        const [ total, turns ] = await Promise.all([
-            Turn.countDocuments(query),
-            Turn.find(query)
-                .skip( Number( at ) )
-                .limit(Number( limit ))
-        ]);
-    
-       return res.json({
-            total,
-            turns
-        }); 
+        const [turns, count]= await dbConnection.query(`exec Turno_listaActivos ${ Number(limit) }, ${ Number(at) }`);
+        
+        return res.json({ count, turns: turnResponse(turns) })
     } catch (error) {
         console.log(error)
         return res.status(500).json({
@@ -31,13 +25,20 @@ const turnGetById = async( req, res = response ) => {
     const { id } = req.params;
 
     try {
-        const turn = await Turn.findById(id)
-                                     .populate('createdBy', 'name');
-        return res.json( turn );
+        const [ resp ] = await dbConnection.query(`exec Turno_ObtenerPK '${ id }'`);
+        if ( resp[0].ErrorMessage ) {
+            return res.status(500).json({
+                msg: resp[0].ErrorMessage,
+                numer: resp[0].ErrorNumber
+            });
+        }
+        
+        let user = turnResponse(resp[0]);
+        return res.json(user);
     } catch (error) {
         console.log(error)
         return res.status(500).json({
-            msg: 'Error server :c call my creator pls' 
+            msg: 'Error server.' 
         })
     }
 }
@@ -46,23 +47,14 @@ const turnPost = async( req, res = response ) => {
     const { startTime, endTime } = req.body;
 
     try {
-
-        const turnDB = await Turn.findOne({ startTime, endTime });
-
-        if ( turnDB ) {
-            return res.status(400).json({
-                msg: `Turn ${ startTime } - ${ endTime } already exist.`
-            })
+        const [ resp ] = await dbConnection.query(`exec Turno_Crear '${uuid()}', '${startTime}', '${endTime}','${moment().format('YYYY/MM/DD')}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`);
+        if ( resp[0].ErrorMessage ) {
+            return res.status(500).json({
+                msg: resp[0].ErrorMessage,
+                numer: resp[0].ErrorNumber
+            });
         }
-
-        const turn = new Turn({startTime, endTime});
-        turn.createdBy = req.user._id;
-        turn.createdAt = moment().format('MMMM Do YYYY, h:mm:ss a');
-        turn.lastModifiedBy = req.user._id;
-        turn.lastModifiedAt = moment().format('MMMM Do YYYY, h:mm:ss a');
-
-        turn.save();
-
+        const turn = turnResponse(resp[0]);
         return res.status(201).json({
             turn
         });
@@ -83,9 +75,14 @@ const turnPut = async( req, res = response ) => {
     data.lastModifiedAt = moment().format('MMMM Do YYYY, h:mm:ss a')
 
     try {
-        const updatedTurn = await Turn.findByIdAndUpdate(id, data, { new: true })
-                                            .populate('createdBy', 'name');
-                                            
+        const [ resp ] = await dbConnection.query(`exec Turno_Actualizar '${id}', '${data.startTime}', '${data.endTime}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`);
+        if ( resp[0].ErrorMessage ) {
+            return res.status(500).json({
+                msg: resp[0].ErrorMessage,
+                numer: resp[0].ErrorNumber
+            });
+        }
+        let updatedTurn = turnResponse(resp[0]);                            
         res.json( updatedTurn );
     } catch (error) {
         console.log(error)
@@ -99,13 +96,15 @@ const turnDelete = async( req, res = response ) => {
     const { id } = req.params;
 
     try {
-        const deletedTurn = await Turn.findByIdAndUpdate( id, 
-            { 
-                status: false,
-                lastModifiedBy: req.user._id,
-                datalastModifiedAt: moment().format('MMMM Do YYYY, h:mm:ss a')
-            },
-            { new: true });
+        const [ resp ] = await dbConnection.query(`exec Turno_Eliminar '${id}'`)
+        if ( resp[0].ErrorMessage ) {
+            return res.status(500).json({
+                msg: resp[0].ErrorMessage,
+                numer: resp[0].ErrorNumber
+            });
+        }
+        const deletedTurn = turnResponse(resp[0]);
+        
         res.json( deletedTurn );
 
     } catch (error) {

@@ -1,27 +1,17 @@
 const { response } = require('express');
 const moment = require('moment');
+const { dbConnection } = require('../database/config');
+const { scheduleResponse } = require('../helpers/responsesql');
 
 const { Schedule } = require('../models');
 
 
 const scheduleGet = async( req, res = response ) => {
     const { limit = 5, at = 0 } = req.query;
-    const query = { status: true };
 
     try {
-        const [ total, schedule ] = await Promise.all([
-            Schedule.countDocuments(query),
-            Schedule.find(query)
-                .skip( Number( at ) )
-                .limit(Number( limit ))
-                .populate('dispenser', 'name')
-                .populate('turn', ['startTime', 'endTime'] )
-        ]);
-    
-       return res.json({
-            total,
-            schedule
-        }); 
+        const [schedule, count]= await dbConnection.query(`exec Horario_ListaActivos ${ Number(limit) }, ${ Number(at) }`);
+        return res.json({ count, schedule: scheduleResponse(schedule) });
     } catch (error) {
         console.log(error)
         return res.status(500).json({
@@ -48,25 +38,23 @@ const scheduleGetById = async( req, res = response ) => {
 }
 
 const schedulePost = async( req, res = response ) => {
-    const { turn, dispenser, date } = req.body;
+    const { turn, dispenser, date, total } = req.body;
 
     try {
-
-        const scheduleDB = await Schedule.findOne({ turn, dispenser, date });
-
-        if ( scheduleDB ) {
-            return res.status(400).json({
-                msg: `Schedule ${ turn } already exist.`
-            })
+        const [ resp ] = await dbConnection.query(`exec Horario_Crear '${moment(date).format('YYYY/MM/DD')}', '${turn}','${dispenser}','${moment().format('YYYY/MM/DD')}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`);
+        if ( resp[0].ErrorMessage ) {
+            if ( resp[0].ErrorNumber === 50000 ) {
+                return res.status(400).json({
+                    msg: resp[0].ErrorMessage
+                })
+            }
+            return res.status(500).json({
+                msg: resp[0].ErrorMessage,
+                numer: resp[0].ErrorNumber
+            });
         }
-
-        const schedule = new Schedule({turn, dispenser, date});
-        schedule.createdBy = req.user._id;
-        schedule.createdAt = moment().format('MMMM Do YYYY, h:mm:ss a');
-        schedule.lastModifiedBy = req.user._id;
-        schedule.lastModifiedAt = moment().format('MMMM Do YYYY, h:mm:ss a');
-
-        schedule.save();
+        
+        const schedule = scheduleResponse(resp[0]);
 
         return res.status(201).json({
             schedule
@@ -84,16 +72,22 @@ const schedulePut = async( req, res = response ) => {
     const { status, user, lastModifiedBy, lastModifiedAt, ...data } = req.body;
 
     data.user = req.user._id;
-    data.lastModifiedBy = req.user._id;
-    data.lastModifiedAt = moment().format('MMMM Do YYYY, h:mm:ss a')
+    data.updatedBy = req.user._id;
+    data.updatedAt = moment().format('YYYY/MM/DD')
 
     try {
-        const updatedSchedule = await Schedule.findByIdAndUpdate(id, data, { new: true })
-                                            .populate('createdBy', 'name')
-                                            .populate('dispenser', 'name')
-                                            .populate('turn', ['startTime', 'endTime'] );
-                                            
-        res.json( updatedSchedule );
+        const [ resp ] = await dbConnection.query(`exec Horario_Actualizar '${moment(data.date).format('YYYY/MM/DD')}', '${data.total}', '${data.turn}','${data.dispenser}', '${data.updatedAt}', '${req.user.codigo_cedula}'`);
+        if ( resp[0].ErrorMessage ) {
+            return res.status(500).json({
+                msg: resp[0].ErrorMessage,
+                numer: resp[0].ErrorNumber
+            });
+        }
+        const  updatedSchedule = scheduleResponse(resp[0]);
+
+        return res.status(201).json({
+            updatedSchedule
+        });
     } catch (error) {
         console.log(error)
         return res.status(500).json({
@@ -103,17 +97,20 @@ const schedulePut = async( req, res = response ) => {
 }
 
 const scheduleDelete = async( req, res = response ) => {
-    const { id } = req.params;
-
+    const { turn, dispenser, date } = req.body;
     try {
-        const deletedSchedule = await Schedule.findByIdAndUpdate( id, 
-            { 
-                status: false,
-                lastModifiedBy: req.user._id,
-                datalastModifiedAt: moment().format('MMMM Do YYYY, h:mm:ss a')
-            },
-            { new: true });
-        res.json( deletedSchedule );
+        const [ resp ] = await dbConnection.query(`exec Horario_Eliminar '${moment(date).format('YYYY/MM/DD')}','${turn}','${dispenser}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`);
+        if ( resp[0].ErrorMessage ) {
+            return res.status(500).json({
+                msg: resp[0].ErrorMessage,
+                numer: resp[0].ErrorNumber
+            });
+        }
+        const deletedSchedule = scheduleResponse(resp[0]);
+
+        return res.status(201).json({
+            deletedSchedule
+        });
 
     } catch (error) {
         console.log(error)

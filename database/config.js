@@ -1,21 +1,11 @@
-const mongoose = require('mongoose');
+const {Sequelize} = require('sequelize');
 
-const dbConnection = async() => {
 
-    try {
-        
-        await mongoose.connect( process.env.MONGODB_NCC, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
-
-        console.log('Db online!');
-
-    } catch (error) {
-        console.log(error);
-        throw new Error('DB Error.');
-    }
-}
+const dbConnection = new Sequelize(process.env.DATABASE, process.env.USER, process.env.PASSWORD,
+    {
+        host: 'localhost',
+        dialect: 'mssql',
+    })
 
 module.exports = {
     dbConnection

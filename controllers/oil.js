@@ -1,5 +1,8 @@
 const { response } = require('express');
 const moment = require('moment');
+const { uuid } = require('uuidv4');
+const { dbConnection } = require('../database/config');
+const { oilReponse } = require('../helpers/responsesql');
 
 const { Oil } = require('../models');
 
@@ -8,17 +11,8 @@ const oilsGet = async( req, res = response ) => {
     const query = { status: true };
 
     try {
-        const [ total, oils ] = await Promise.all([
-            Oil.countDocuments(query),
-            Oil.find(query)
-                .skip( Number( at ) )
-                .limit(Number( limit ))
-        ]);
-    
-       return res.json({
-            total,
-            oils
-        }); 
+        const [ oils, count ] = await dbConnection.query(`exec Aceite_listaActivos ${limit}, ${at}`);
+        return res.json({ count, oils: oilReponse(oils) });
     } catch (error) {
         console.log(error)
         return res.status(500).json({
@@ -37,32 +31,29 @@ const oilGetById = async( req, res = response ) => {
     } catch (error) {
         console.log(error)
         return res.status(500).json({
-            msg: 'Error server :c call my creator pls' 
+            msg: 'Error server.' 
         })
     }
 }
 
 const oilPost = async( req, res = response ) => {
-    const { name, buyPrice, sellPrice, branch, viscosityGrade, inventory, image, size } = req.body;
+    const { name, price, branch, viscosityGrade, size, type } = req.body;
 
     try {
-
-        const oilDB = await Oil.findOne({ name });
-
-        if ( oilDB ) {
-            return res.status(400).json({
-                msg: `Oil ${ name } already exist.`
-            })
+        const [ resp ] = await dbConnection.query(`exec Aceite_Crear '${uuid()}', '${name}', '${branch}', '${type}', '${viscosityGrade}', '${size}', ${price}, '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`);
+        if ( resp[0].ErrorMessage ) {
+            if ( resp[0].ErrorNumber === 50000 ) {
+                return res.status(400).json({
+                    msg: resp[0].ErrorMessage
+                })
+            }
+            return res.status(500).json({
+                msg: resp[0].ErrorMessage,
+                numer: resp[0].ErrorNumber
+            });
         }
-
-        const oil = new Oil({name, buyPrice, sellPrice, branch, viscosityGrade, inventory, image, size});
-        oil.createdBy = req.user._id;
-        oil.createdAt = moment().format('MMMM Do YYYY, h:mm:ss a');
-        oil.lastModifiedBy = req.user._id;
-        oil.lastModifiedAt = moment().format('MMMM Do YYYY, h:mm:ss a');
-
-        oil.save();
-
+        
+        const oil = oilReponse(resp[0]);
         return res.status(201).json({
             oil
         });
@@ -79,14 +70,27 @@ const oilPut = async( req, res = response ) => {
     const { status, user, lastModifiedBy, lastModifiedAt, ...data } = req.body;
 
     data.user = req.user._id;
-    data.lastModifiedBy = req.user._id;
-    data.lastModifiedAt = moment().format('MMMM Do YYYY, h:mm:ss a')
+    data.updatedBy = req.user._id;
+    data.updatedAt = moment().format('YYYY/MM/DD');
 
     try {
-        const updatedOil = await Oil.findByIdAndUpdate(id, data, { new: true })
-                                            .populate('createdBy', 'name');
-                                            
-        res.json( updatedOil );
+        const [ resp ] = await dbConnection.query(`exec Aceite_Actualizar '${id}', '${data.name}', '${data.branch}', '${data.type}', '${data.viscosityGrade}', '${data.size}', ${data.price}, '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`);
+        if ( resp[0].ErrorMessage ) {
+            if ( resp[0].ErrorNumber === 50000 ) {
+                return res.status(400).json({
+                    msg: resp[0].ErrorMessage
+                })
+            }
+            return res.status(500).json({
+                msg: resp[0].ErrorMessage,
+                numer: resp[0].ErrorNumber
+            });
+        }
+        
+        const updatedOil = oilReponse(resp[0]);
+        return res.status(201).json({
+            updatedOil
+        });
     } catch (error) {
         console.log(error)
         return res.status(500).json({
@@ -99,14 +103,23 @@ const oilDelete = async( req, res = response ) => {
     const { id } = req.params;
 
     try {
-        const deletedOil = await Oil.findByIdAndUpdate( id, 
-            { 
-                status: false,
-                lastModifiedBy: req.user._id,
-                datalastModifiedAt: moment().format('MMMM Do YYYY, h:mm:ss a')
-            },
-            { new: true });
-        res.json( deletedOil );
+        const [ resp ] = await dbConnection.query(`exec Aceite_Eliminar '${id}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`);
+        if ( resp[0].ErrorMessage ) {
+            if ( resp[0].ErrorNumber === 50000 ) {
+                return res.status(400).json({
+                    msg: resp[0].ErrorMessage
+                })
+            }
+            return res.status(500).json({
+                msg: resp[0].ErrorMessage,
+                numer: resp[0].ErrorNumber
+            });
+        }
+        
+        const deletedOil = oilReponse(resp[0]);
+        return res.status(201).json({
+            deletedOil
+        });
 
     } catch (error) {
         console.log(error)
