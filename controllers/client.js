@@ -1,24 +1,22 @@
 const { response } = require('express');
 const moment = require('moment');
+const { uuid } = require('uuidv4');
+
+const { dbConnection } = require('../database/config');
+const { clientResponse } = require('../helpers/responsesql');
 
 const { Client } = require('../models');
 
 
 const clientsGet = async( req, res = response ) => {
     const { limit = 5, at = 0 } = req.query;
-    const query = { status: true };
 
     try {
-        const [ total, clients ] = await Promise.all([
-            Client.countDocuments(query),
-            Client.find(query)
-                .skip( Number( at ) )
-                .limit(Number( limit ))
-        ]);
+        const [ clients, count ] = await dbConnection.query(`exec Cliente_ListaActivos ${limit}, ${at}`);
     
-       return res.json({
-            total,
-            clients
+        return res.json({
+            clients:  clientResponse(clients),
+            count
         }); 
     } catch (error) {
         console.log(error)
@@ -44,29 +42,25 @@ const clientGetById = async( req, res = response ) => {
 }
 
 const clientPost = async( req, res = response ) => {
-    const { name } = req.body;
+    const { name, phone, email } = req.body;
 
     try {
-
-        const clientDB = await Client.findOne({ name });
-
-        if ( clientDB ) {
-            return res.status(400).json({
-                msg: `Client ${ name } already exist.`
-            })
+        const newName = name.split(" ")
+        const [ resp ] = await dbConnection.query(`exec Cliente_crear '${uuid()}', '${newName[0]}', '${newName[1]}', '${phone}', '${email}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`);
+        if ( resp[0].ErrorMessage ) {
+            if ( resp[0].ErrorNumber === 50000 ) {
+                return res.status(400).json({
+                    msg: resp[0].ErrorMessage
+                })
+            }
+            return res.status(500).json({
+                msg: resp[0].ErrorMessage,
+                numer: resp[0].ErrorNumber
+            });
         }
-
-        const client = new Client({name});
-        client.createdBy = req.user._id;
-        client.createdAt = moment().format('MMMM Do YYYY, h:mm:ss a');
-        client.lastModifiedBy = req.user._id;
-        client.lastModifiedAt = moment().format('MMMM Do YYYY, h:mm:ss a');
-
-        client.save();
-
-        return res.status(201).json({
-            client
-        });
+        
+        const client = clientResponse(resp[0]);
+        return res.status(201).json(client);
     } catch(error) {
         console.log(error)
         return res.status(500).json({
@@ -78,16 +72,28 @@ const clientPost = async( req, res = response ) => {
 const clientPut = async( req, res = response ) => {
     const { id } = req.params;
     const { status, user, lastModifiedBy, lastModifiedAt, ...data } = req.body;
-
+    console.log(id)
     data.user = req.user._id;
     data.lastModifiedBy = req.user._id;
-    data.lastModifiedAt = moment().format('MMMM Do YYYY, h:mm:ss a')
+    data.lastModifiedAt = moment().format('YYYY/MM/DD')
+    const newName = data.name.split(" ")
 
     try {
-        const updatedClient = await Client.findByIdAndUpdate(id, data, { new: true })
-                                            .populate('createdBy', 'name');
-                                            
-        res.json( updatedClient );
+        const [ resp ] = await dbConnection.query(`exec Cliente_Actualizar '${id}', '${newName[0]}', '${newName[1]}', ${data.phone}, '${data.email}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`);
+        if ( resp[0].ErrorMessage ) {
+            if ( resp[0].ErrorNumber === 50000 ) {
+                return res.status(400).json({
+                    msg: resp[0].ErrorMessage
+                })
+            }
+            return res.status(500).json({
+                msg: resp[0].ErrorMessage,
+                numer: resp[0].ErrorNumber
+            });
+        }
+        
+        const updatedClient = clientResponse(resp[0]);
+        return res.status(201).json(updatedClient);
     } catch (error) {
         console.log(error)
         return res.status(500).json({
@@ -100,15 +106,20 @@ const clientDelete = async( req, res = response ) => {
     const { id } = req.params;
 
     try {
-        const deletedClient = await Client.findByIdAndUpdate( id, 
-            { 
-                status: false,
-                lastModifiedBy: req.user._id,
-                datalastModifiedAt: moment().format('MMMM Do YYYY, h:mm:ss a')
-            },
-            { new: true });
-        res.json( deletedClient );
-
+        const [ resp ] = await dbConnection.query(`exec Cliente_Eliminar '${id}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`);
+        if ( resp[0].ErrorMessage ) {
+            if ( resp[0].ErrorNumber === 50000 ) {
+                return res.status(400).json({
+                    msg: resp[0].ErrorMessage
+                })
+            }
+            return res.status(500).json({
+                msg: resp[0].ErrorMessage,
+                numer: resp[0].ErrorNumber
+            });
+        }
+        const deletedClient = clientResponse(resp[0]);
+        return res.status(201).json(deletedClient);
     } catch (error) {
         console.log(error)
         return res.status(500).json({

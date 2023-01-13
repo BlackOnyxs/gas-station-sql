@@ -34,12 +34,12 @@ router.get('/:id', [
 router.post('/mobile', [
     jwtValidate,
     hasRole('ADMIN_ROLE','SALE_ROLE'),
-    check('product', 'Error Id').isMongoId(),
-    check('product').custom( product => existProduct( product ) ),
-    check('dispenser', 'Error Id').isMongoId(),
-    check('dispenser').custom( dispenser => existObject( dispenser, 'User') ),
-    check('client').custom( client => existObject( client, 'Client') ),
+    check('product', 'El producto es requerido').not().isEmpty(),
+    check('dispenser', 'El dispenser es requerido').not().isEmpty(),
+    check('quantity', 'El quantity es requerido').not().isEmpty(),
     check('quantity', 'quantity must be numeric').isNumeric(),
+    check('price', 'El price es requerido').not().isEmpty(),
+    check('price', 'price must be numeric').isNumeric(),
     check('total', 'total must be numeric').isNumeric(),
     check('total', 'total is required').notEmpty(),
     fieldsValidator
@@ -48,25 +48,23 @@ router.post('/mobile', [
 router.put('/:id', [
     jwtValidate,
     isAdmin,
-    check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'SellInvoice') ),
-    check('product', 'Error Id').isMongoId(),
-    check('product').custom( product => existProduct( product ) ),
-    check('dispenser', 'Error Id').isMongoId(),
-    check('dispenser').custom( dispenser => existObject( dispenser, 'User') ),
-    // check('client', 'Error Id').isMongoId(),
-    check('client').custom( client => existObject( client, 'Client') ),
+    hasRole('ADMIN_ROLE','SALE_ROLE'),
+    check('id', 'El id es requerido').not().isEmpty(),
+    check('product', 'El producto es requerido').not().isEmpty(),
+    check('dispenser', 'El dispenser es requerido').not().isEmpty(),
+    check('quantity', 'El quantity es requerido').not().isEmpty(),
     check('quantity', 'quantity must be numeric').isNumeric(),
+    check('price', 'El price es requerido').not().isEmpty(),
+    check('price', 'price must be numeric').isNumeric(),
     check('total', 'total must be numeric').isNumeric(),
     check('total', 'total is required').notEmpty(),
     fieldsValidator
 ], sellInvoicePut );
 
-router.get('/:id', [
+router.delete('/:id', [
     jwtValidate,
     isAdmin,
-    check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'SellInvoice') ),
+    check('id', 'El id es requerido').not().isEmpty(),
     fieldsValidator
 ], sellInvoiceDelete );
 

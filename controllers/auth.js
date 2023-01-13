@@ -11,7 +11,7 @@ const loginUser = async (req, res = response) => {
     
     try {
         // const user = await User.findOne({ email });
-        const [ dbUser] = await dbConnection.query(`exec AuthColaborador '${ email }'`);
+        const [ dbUser ] = await dbConnection.query(`exec AuthColaborador '${ email }'`);
         let user = dbUser[0];
 
         if ( !user ) {

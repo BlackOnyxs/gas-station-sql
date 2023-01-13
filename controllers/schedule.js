@@ -68,16 +68,31 @@ const schedulePost = async( req, res = response ) => {
 }
 
 const schedulePut = async( req, res = response ) => {
-    const { id } = req.params;
+    // const { id } = req.params;
     const { status, user, lastModifiedBy, lastModifiedAt, ...data } = req.body;
 
-    data.user = req.user._id;
-    data.updatedBy = req.user._id;
-    data.updatedAt = moment().format('YYYY/MM/DD')
-
     try {
-        const [ resp ] = await dbConnection.query(`exec Horario_Actualizar '${moment(data.date).format('YYYY/MM/DD')}', '${data.total}', '${data.turn}','${data.dispenser}', '${data.updatedAt}', '${req.user.codigo_cedula}'`);
+        
+        // const [ oldShedule ] = await dbConnection.query(`exec Horario_ObtenerPK '${data.oldDate}', '${data.oldTurn}', '${data.oldDispenser}'`);
+        // if ( oldShedule[0].ErrorMessage ) {
+        //     if ( oldShedule[0].ErrorNumber === 50000 ) {
+        //         return res.status(400).json({
+        //             msg: oldShedule[0].ErrorMessage
+        //         })
+        //     }
+        //     return res.status(500).json({
+        //         msg: oldShedule[0].ErrorMessage,
+        //         numer: oldShedule[0].ErrorNumber
+        //     });
+        // }
+
+        const [ resp ] = await dbConnection.query(`exec Horario_Actualizar '${data.oldDate}', '${data.oldTurn}', '${data.oldDispenser}', '${moment(data.date).format('YYYY/MM/DD')}', '${data.total}', '${data.turn}','${data.dispenser}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`);
         if ( resp[0].ErrorMessage ) {
+            if ( resp[0].ErrorNumber === 50000 ) {
+                return res.status(400).json({
+                    msg: resp[0].ErrorMessage
+                })
+            }
             return res.status(500).json({
                 msg: resp[0].ErrorMessage,
                 numer: resp[0].ErrorNumber
@@ -99,13 +114,19 @@ const schedulePut = async( req, res = response ) => {
 const scheduleDelete = async( req, res = response ) => {
     const { turn, dispenser, date } = req.body;
     try {
-        const [ resp ] = await dbConnection.query(`exec Horario_Eliminar '${moment(date).format('YYYY/MM/DD')}','${turn}','${dispenser}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`);
+        const [ resp ] = await dbConnection.query(`exec Horario_Eliminar '${date}','${turn}','${dispenser}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`);
         if ( resp[0].ErrorMessage ) {
+            if ( resp[0].ErrorNumber === 50000 ) {
+                return res.status(400).json({
+                    msg: resp[0].ErrorMessage
+                })
+            }
             return res.status(500).json({
                 msg: resp[0].ErrorMessage,
                 numer: resp[0].ErrorNumber
             });
         }
+        
         const deletedSchedule = scheduleResponse(resp[0]);
 
         return res.status(201).json({

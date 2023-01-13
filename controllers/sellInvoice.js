@@ -1,26 +1,28 @@
 const { response } = require('express');
 const moment = require('moment');
+const { uuid } = require('uuidv4');
+const { dbConnection } = require('../database/config');
+const { sellInvoiceResponse } = require('../helpers/responsesql');
 
 const { SellInvoice, Client } = require('../models');
 
 const sellInvoicesGet = async( req, res = response ) => {
-    const { limit = 5, at = 0 } = req.query;
-    const query = { status: true };
+    const { limit = 5, at = 0, productType } = req.query;
 
     try {
-        const [ total, invoices ] = await Promise.all([
-            SellInvoice.countDocuments(query),
-            SellInvoice.find(query)
-                .skip( Number( at ) )
-                .limit(Number( limit ))
-                .populate('dispenser', 'name')
-                .populate('product', ['name', 'sellPrice'] )
-                .populate('client', 'name')
-        ]);
-    
-       return res.json({
-            total,
-            invoices
+        let model = null;
+        if ( productType != 'fuels' ) {
+            model = 'FacturaVentaAceite_ListaActivos'
+        } else {
+            model = 'FacturaVentaCombustible_ListaActivos'
+        }
+
+        const [ invoices, count ] = await dbConnection.query(`exec ${model} ${limit}, ${at}`);
+        
+        return res.json({
+            // invoices:  providerResponse(invoices),
+            invoices: sellInvoiceResponse(invoices),
+            count
         }); 
     } catch (error) {
         console.log(error)
@@ -76,29 +78,31 @@ const sellInvoiceGetById = async( req, res = response ) => {
 
 
 const sellInvoicePost = async( req, res = response ) => {
-    let { product, client, dispenser, quantity, total } = req.body;
-    let sellInvoice;
+    let { product, client, dispenser, quantity, total, productType, date, price } = req.body;
     try {
-
-        if ( client.length < 1 ) {
-            // console.log('vacio')
-            client = await Client.find({ name: 'Default'});
-            // console.log({'Encontrado': client})
-            sellInvoice = new SellInvoice({ product, client: client._id, dispenser, quantity, total });
-        }else {
-            sellInvoice = new SellInvoice({ product, client, dispenser, quantity, total });
+        let model = null;
+        if ( productType[0] != 'fuels' ) {
+            model = 'FacturaVentaAcite_Crear'
+        } else {
+            model = 'FacturaVentaCombustible_Crear'
         }
 
-        
-        sellInvoice.createdBy = req.user._id;
-        sellInvoice.createdAt = moment().format('MMMM Do YYYY, h:mm:ss a');
-        sellInvoice.lastModifiedBy = req.user._id;
-        sellInvoice.lastModifiedAt = moment().format('MMMM Do YYYY, h:mm:ss a');
-
-        sellInvoice.save();
+        const [ resp ] = await dbConnection.query(`exec ${model} '${uuid()}', ${total}, '${moment(date).format('YYYY/MM/DD')}', ${quantity}, ${price}, '${dispenser}', '${product}', '${client}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`)
+        console.log(resp)
+        if ( resp[0].ErrorMessage ) {
+            if ( resp[0].ErrorNumber === 50000 ) {
+                return res.status(400).json({
+                    msg: resp[0].ErrorMessage
+                })
+            }
+            return res.status(500).json({
+                msg: resp[0].ErrorMessage,
+                numer: resp[0].ErrorNumber
+            });
+        }
 
         return res.status(201).json({
-            sellInvoice
+            invoice: sellInvoiceResponse(resp[0])
         });
     } catch(error) {
         console.log(error)
@@ -111,19 +115,32 @@ const sellInvoicePost = async( req, res = response ) => {
 const sellInvoicePut = async( req, res = response ) => {
     const { id } = req.params;
     const { status, user, lastModifiedBy, lastModifiedAt, ...data } = req.body;
-
-    data.user = req.user._id;
-    data.lastModifiedBy = req.user._id;
-    data.lastModifiedAt = moment().format('MMMM Do YYYY, h:mm:ss a')
-
+    const {product, client, dispenser, quantity, total,  date, price, productType} = data; 
     try {
-        const updatedInvoice = await SellInvoice.findByIdAndUpdate(id, data, { new: true })
-                                              .populate('dispenser', 'name')
-                                              .populate('product', ['name', 'sellPrice'] )
-                                              .populate('client', 'name')
-                                              .populate('lastModifiedBy', 'name')
-                                            
-        res.json( updatedInvoice );
+        let model = null;
+        if ( productType[0] != 'fuels' ) {
+            model = 'FacturaVentaAceite_Actualizar'
+        } else {
+            model = 'FacturaVentaCombustible_Actualizar'
+        }
+
+        const [ resp ] = await dbConnection.query(`exec ${model} '${id}', ${total}, '${moment(date).format('YYYY/MM/DD')}', ${quantity}, ${price}, '${dispenser}', '${product}', '${client}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`)
+        console.log(resp)
+        if ( resp[0].ErrorMessage ) {
+            if ( resp[0].ErrorNumber === 50000 ) {
+                return res.status(400).json({
+                    msg: resp[0].ErrorMessage
+                })
+            }
+            return res.status(500).json({
+                msg: resp[0].ErrorMessage,
+                numer: resp[0].ErrorNumber
+            });
+        }
+
+        return res.status(201).json({
+            invoice: sellInvoiceResponse(resp[0])
+        });
     } catch (error) {
         console.log(error)
         return res.status(500).json({
@@ -134,16 +151,33 @@ const sellInvoicePut = async( req, res = response ) => {
 
 const sellInvoiceDelete = async( req, res = response ) => {
     const { id } = req.params;
-
+    const { productType } = req.query;
     try {
-        const deletedInvoice = await SellInvoice.findByIdAndUpdate( id, 
-            { 
-                status: false,
-                lastModifiedBy: req.user._id,
-                datalastModifiedAt: moment().format('MMMM Do YYYY, h:mm:ss a')
-            },
-            { new: true });
-        res.json( deletedInvoice );
+        let model = null;
+        if ( productType != 'fuels' ) {
+            model = 'FacturaVentaAceite_Eliminar'
+        } else {
+            model = 'FacturaVentaCombustible_Eliminar'
+        }
+
+        const [ resp ] = await dbConnection.query(`exec ${model} '${id}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`)
+
+        if ( resp[0].ErrorMessage ) {
+            if ( resp[0].ErrorNumber === 50000 ) {
+                return res.status(400).json({
+                    msg: resp[0].ErrorMessage
+                })
+            }
+            return res.status(500).json({
+                msg: resp[0].ErrorMessage,
+                numer: resp[0].ErrorNumber
+            });
+        }
+
+        return res.status(201).json({
+            invoice: sellInvoiceResponse(resp[0])
+        });
+
 
     } catch (error) {
         console.log(error)
