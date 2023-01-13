@@ -16,8 +16,7 @@ router.get('/', [
 router.get('/:id', [
     jwtValidate,
     hasRole('ADMIN_ROLE', 'SALE_ROLE'),
-    check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'Fuel') ),
+    check('id', 'El id es requerido').not().isEmpty(),
     fieldsValidator
 ], fuelGetById );
 

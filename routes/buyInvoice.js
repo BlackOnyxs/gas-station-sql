@@ -15,21 +15,19 @@ router.get('/', [
 router.get('/:id', [
     jwtValidate,
     isAdmin,
-    check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'BuyInvoice') ),
+    check('id', 'El id es requerido').not().isEmpty(),
     fieldsValidator
 ], buyInvoiceGetById );
 
 router.post('/', [
     jwtValidate,
     isAdmin,
-    check('product', 'Error Id').isMongoId(),
-    check('product').custom( product => existProduct( product ) ),
-    check('manager', 'Error Id').isMongoId(),
-    check('manager').custom( manager => existObject( manager, 'User') ),
-    check('provider', 'Error Id').isMongoId(),
-    check('provider').custom( provider => existObject( provider, 'Provider') ),
+    check('product', 'El producto es requerido').not().isEmpty(),
+    check('provider', 'El provider es requerido').not().isEmpty(),
+    check('quantity', 'El quantity es requerido').not().isEmpty(),
     check('quantity', 'quantity must be numeric').isNumeric(),
+    check('price', 'El price es requerido').not().isEmpty(),
+    check('price', 'price must be numeric').isNumeric(),
     check('total', 'total must be numeric').isNumeric(),
     check('total', 'total is required').notEmpty(),
     fieldsValidator
@@ -38,15 +36,13 @@ router.post('/', [
 router.put('/:id', [
     jwtValidate,
     isAdmin,
-    check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'BuyInvoice') ),
-    check('product', 'Error Id').isMongoId(),
-    check('product').custom( product => existProduct( product ) ),
-    check('manager', 'Error Id').isMongoId(),
-    check('manager').custom( manager => existObject( manager, 'User') ),
-    check('provider', 'Error Id').isMongoId(),
-    check('provider').custom( provider => existObject( provider, 'Provider') ),
+    check('id', 'El id es requerido').not().isEmpty(),
+    check('product', 'El producto es requerido').not().isEmpty(),
+    check('provider', 'El provider es requerido').not().isEmpty(),
+    check('quantity', 'El quantity es requerido').not().isEmpty(),
     check('quantity', 'quantity must be numeric').isNumeric(),
+    check('price', 'El price es requerido').not().isEmpty(),
+    check('price', 'price must be numeric').isNumeric(),
     check('total', 'total must be numeric').isNumeric(),
     check('total', 'total is required').notEmpty(),
     fieldsValidator
@@ -55,8 +51,7 @@ router.put('/:id', [
 router.delete('/:id', [
     jwtValidate,
     isAdmin,
-    check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'BuyInvoice') ),
+    check('id', 'El id es requerido').not().isEmpty(),
     fieldsValidator
 ], buyInvoiceDelete );
 

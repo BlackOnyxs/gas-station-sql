@@ -105,6 +105,7 @@ const scheduleResponse = ( data ) => {
 }
 
 const fuelResponse = ( data ) => {
+    console.log(data)
     if ( Array.isArray( data ) ) {
         const newFuels = [];
         data.forEach( f => {
@@ -148,7 +149,8 @@ const oilReponse = ( data ) => {
                 type: o.tipo,
                 viscosityGrade: o.grado_viscosidad,
                 size: o.unidad,
-                price: o.precio_venta,
+                sellPrice: o.precio_venta,
+                inventory: o.inventario,
                 status: o.status,
                 updatedBy: o.updatedBy,
                 createdAt: o.createdAt,
@@ -165,7 +167,8 @@ const oilReponse = ( data ) => {
             type: data.tipo,
             viscosityGrade: data.grado_viscosidad,
             size: data.unidad,
-            price: data.precio_venta,
+            sellPrice: data.precio_venta,
+            inventory: data.inventario,
             status: data.status,
             updatedBy: data.updatedBy,
             createdAt: data.createdAt,
@@ -174,10 +177,225 @@ const oilReponse = ( data ) => {
     }   
 }
 
+const clientResponse = ( data ) => {
+    if ( Array.isArray(data) ) {
+        const newTurns = [];
+        data.forEach( client => {
+            const newclient = {
+                _id: client.codigo_cliente,
+                name: `${ client.nombre } ${client.apellido }`,
+                phone: client.telefono,
+                email: client.email,
+                status: client.status,
+                updatedBy: client.updatedBy,
+                createdAt: client.createdAt,
+                updatedAt: client.updatedAt
+            }
+            newTurns.push(newclient);
+        });
+        return newTurns;
+    } else {
+        return {
+            _id: data.codigo_cliente,
+            name: `${`${ data.nombre } ${data.apellido }` }`,
+            phone: data.telefono,
+            email: data.email,
+            status: data.status,
+            updatedBy: data.updatedBy,
+            createdAt: data.createdAt,
+            updatedAt: data.updatedAt
+        }
+    }
+}
+const providerResponse = ( data ) => {
+    if ( Array.isArray(data) ) {
+        const newProviders = [];
+        data.forEach( provider => {
+            const newProvider = {
+                _id: provider.codigo_proveedor,
+                name: `${ provider.nombre } ${provider.apellido }`,
+                phone: provider.telefono,
+                status: provider.status,
+                updatedBy: provider.updatedBy,
+                createdAt: provider.createdAt,
+                updatedAt: provider.updatedAt
+            }
+            newProviders.push(newProvider);
+        });
+        return newProviders;
+    } else {
+        return {
+            _id: data.codigo_proveedor,
+            name: `${`${ data.nombre } ${data.apellido }` }`,
+            phone: data.telefono,
+            status: data.status,
+            updatedBy: data.updatedBy,
+            createdAt: data.createdAt,
+            updatedAt: data.updatedAt
+        }
+    }
+}
+
+const buyInvoiceResponse = ( data ) => {
+    if ( Array.isArray(data) ) {
+        const newInvoices = [];
+        data.forEach( invoice => {
+            const newInvoice = {
+                _id: invoice.codigo_factura,
+                date: invoice.fecha,
+                total: invoice.monto,
+                price: invoice.precio_compra,
+                quantity: invoice.cantidad,
+                product: (invoice.aceite) ? {
+                    _id: invoice.codigo_aceite,
+                    name: invoice.aceite,
+                    sellPrice: invoice.precio_venta, 
+                    productType: ['oils']
+                } 
+                : {
+                    _id: invoice.codigo_combustible,
+                    name: invoice.combustible,
+                    sellPrice: invoice.precio_litro,
+                    productType: ['fuels']
+                },
+                provider: {
+                    _id: invoice.codigo_proveedor,
+                    name: invoice.proveedor
+                },
+                status: invoice.status,
+                updatedBy: {
+                    _id: invoice.updatedBy,
+                    name: invoice.colaborador
+                },
+                createdAt: invoice.createdAt,
+                updatedAt: invoice.updatedAt
+            }
+            newInvoices.push(newInvoice);
+        });
+        return newInvoices;
+    } else {
+        return {
+            _id: data.codigo_factura,
+            date: data.fecha,
+            total: data.monto,
+            price: data.precio_compra,
+            quantity: data.cantidad,
+            product: (data.aceite) ? {
+                _id: data.codigo_aceite,
+                name: data.aceite,
+                sellPrice: data.precio_venta, 
+                productType: ['oils']
+            } 
+            : {
+                _id: data.codigo_combustible,
+                name: data.combustible,
+                sellPrice: data.precio_litro,
+                productType: ['fuels']
+            },
+            provider: {
+                _id: data.codigo_proveedor,
+                name: data.proveedor
+            },
+            status: data.status,
+            updatedBy: {
+                _id: data.updatedBy,
+                name: data.colaborador
+            },
+            createdAt: data.createdAt,
+            updatedAt: data.updatedAt
+        }
+    }
+}
+
+const sellInvoiceResponse = ( data ) => {
+    if ( Array.isArray(data) ) {
+        const newInvoices = [];
+        data.forEach( invoice => {
+            const newInvoice = {
+                _id: invoice.codigo_factura,
+                date: invoice.fecha,
+                total: invoice.monto,
+                price: invoice.precio_venta,
+                quantity: invoice.cantidad,
+                dispenser: {
+                    _id: invoice.codigo_despachador,
+                    name: invoice.despachador
+                },
+                client: {
+                    _id: invoice.codigo_cliente,
+                    name: invoice.cliente
+                },
+                product: (invoice.aceite) ? {
+                    _id: invoice.codigo_aceite,
+                    name: invoice.aceite,
+                    sellPrice: invoice.precio_venta, 
+                    productType: ['oils']
+                } 
+                : {
+                    _id: invoice.codigo_combustible,
+                    name: invoice.combustible,
+                    sellPrice: invoice.precio_litro,
+                    productType: ['fuels']
+                },
+                status: invoice.status,
+                updatedBy: {
+                    _id: invoice.updatedBy,
+                    name: invoice.colaborador
+                },
+                createdAt: invoice.createdAt,
+                updatedAt: invoice.updatedAt,
+            }
+            newInvoices.push(newInvoice);
+        });
+        return newInvoices;
+    } else {
+        return {
+            _id: data.codigo_factura,
+            date: data.fecha,
+            total: data.monto,
+            price: data.precio_venta,
+            quantity: data.cantidad,
+            dispenser: {
+                _id: data.codigo_despachador,
+                name: data.despachador
+            },
+            client: {
+                _id: data.codigo_cliente,
+                name: data.cliente
+            },
+            product: (data.aceite) ? {
+                _id: data.codigo_aceite,
+                name: data.aceite,
+                sellPrice: data.precio_venta, 
+                productType: ['oils']
+            } 
+            : {
+                _id: data.codigo_combustible,
+                name: data.combustible,
+                sellPrice: data.precio_litro,
+                productType: ['fuels']
+            },
+            status: data.status,
+            updatedBy: {
+                _id: data.updatedBy,
+                name: data.colaborador
+            },
+            createdAt: data.createdAt,
+            updatedAt: data.updatedAt,
+        }
+    }
+}
+
+
+
 module.exports = {
-    userReponse,
-    scheduleResponse,
-    turnResponse,
+    buyInvoiceResponse,
+    clientResponse,
     fuelResponse,
     oilReponse,
+    providerResponse,
+    scheduleResponse,
+    sellInvoiceResponse,
+    turnResponse,
+    userReponse,
 }

@@ -16,8 +16,7 @@ router.get('/', [
 router.get('/:id', [
     jwtValidate,
     hasRole('ADMIN_ROLE', 'SALE_ROLE'),
-    check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'Client') ),
+    check('id', 'El id es requerido').not().isEmpty(),
     fieldsValidator
 ], clientGetById );
 
@@ -25,23 +24,24 @@ router.post('/', [
     jwtValidate,
     isAdmin,
     check('name', 'Name is required').not().isEmpty(),
+    check('phone', 'phone is required').not().isEmpty(),
+    check('email', 'email is required').not().isEmpty(),
     fieldsValidator
 ], clientPost );
 
 router.put('/:id', [
     jwtValidate,
     isAdmin,
-    check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'Client') ),
     check('name', 'Name is required').not().isEmpty(),
+    check('phone', 'phone is required').not().isEmpty(),
+    check('email', 'email is required').not().isEmpty(),
     fieldsValidator
 ], clientPut );
 
 router.delete('/:id', [
     jwtValidate,
     isAdmin,
-    check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'Client') ),
+    check('id', 'El id es requerido').not().isEmpty(),
     fieldsValidator
 ], clientDelete );
 
