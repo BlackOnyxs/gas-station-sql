@@ -8,7 +8,6 @@ const jwtValidate = async(req, res = response, next) => {
     //x-api-key
     const token = req.header('x-token');
     if ( !token ) {
-        console.log('no')
         return res.status(401).json({
             ok: false,
             msg: 'No se envió el token.'
@@ -20,6 +19,7 @@ const jwtValidate = async(req, res = response, next) => {
             token,
             process.env.SEED
         );
+        console.log(uid)
         
         // const user = await User.findById(uid);
         const [ dbUser ] = await dbConnection.query(`exec ObtenerColaboradorPK '${ uid }'`);

@@ -33,24 +33,24 @@ const sellInvoicesGet = async( req, res = response ) => {
 }
 
 const sellInvoicesOwner = async( req, res = response ) => {
-    const { dispenser, schedule, limit = 5, at = 0  } = req.body;
-    const query = { dispenser, schedule };
-    try {
-        
-        const [ total, invoices ] = await Promise.all([
-            SellInvoice.countDocuments(query),
-            SellInvoice.find(query)
-                        .skip(Number( at ))
-                        .limit(Number( limit))
-                        .populate('product', ['name', 'sellPrice'] )
-                        .populate('client', 'name')
-        ])
+    const { limit = 5, at = 0, productType } = req.query;
 
+    try {
+        let model = null;
+        if ( productType != 'fuels' ) {
+            model = 'FacturaVentaAceite_Despachador'
+        } else {
+            model = 'FacturaVentaCombustible_Despachador'
+        }
+
+        const [ invoices, count ] = await dbConnection.query(`exec ${model} ${limit}, ${at}, '${moment().format('YYYY/MMM/DD')}', '${req.user.codigo_cedula}'`);
+        
         return res.json({
-            total,
-            invoices
-        });  
-    }catch (error) {
+            // invoices:  providerResponse(invoices),
+            invoices: sellInvoiceResponse(invoices),
+            count
+        }); 
+    } catch (error) {
         console.log(error)
         return res.status(500).json({
             msg: 'Error server.' 
@@ -100,9 +100,10 @@ const sellInvoicePost = async( req, res = response ) => {
                 numer: resp[0].ErrorNumber
             });
         }
+        const invoice = sellInvoiceResponse(resp[0])
 
         return res.status(201).json({
-            invoice: sellInvoiceResponse(resp[0])
+            invoice 
         });
     } catch(error) {
         console.log(error)
@@ -138,8 +139,10 @@ const sellInvoicePut = async( req, res = response ) => {
             });
         }
 
+        const invoice = sellInvoiceResponse(resp[0])
+
         return res.status(201).json({
-            invoice: sellInvoiceResponse(resp[0])
+            invoice
         });
     } catch (error) {
         console.log(error)
@@ -173,9 +176,10 @@ const sellInvoiceDelete = async( req, res = response ) => {
                 numer: resp[0].ErrorNumber
             });
         }
+        const invoice = sellInvoiceResponse(resp[0])
 
         return res.status(201).json({
-            invoice: sellInvoiceResponse(resp[0])
+            invoice
         });
 
 

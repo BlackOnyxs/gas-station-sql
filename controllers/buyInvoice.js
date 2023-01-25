@@ -106,7 +106,7 @@ const buyInvoicePost = async( req, res = response ) => {
 
             const [ productResp ] = await dbConnection.query(`exec ${productModel} '${_id}', '${name}', '${branch}', '${type}', '${viscosityGrade}', ${(Number(inventory) + Number(quantity))}, '${size}', ${sellPrice}, '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`); 
             console.log({productResp})
-            if ( resp[0].ErrorMessage ) {
+            if ( productResp[0].ErrorMessage ) {
                 if ( productResp[0].ErrorNumber === 50000 ) {
                     return res.status(400).json({
                         msg: productResp[0].ErrorMessage

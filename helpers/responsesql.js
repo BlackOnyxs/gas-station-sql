@@ -94,8 +94,15 @@ const scheduleResponse = ( data ) => {
             _id: uuid(),
             date: data.fecha,
             total: data.monto,
-            dispenser: data.codigo_despachador,
-            turn: data.codigo_turn,
+            dispenser: {
+                uid: data.codigo_cedula,
+                name: data.nombre + ' ' + data.apellido
+            },
+            turn: {
+                _id: data.codigo_turno,
+                startTime: data.horaInicio,
+                endTime: data.horaFinal
+            },
             status: data.status,
             updatedBy: data.updatedBy,
             createdAt: data.createdAt,

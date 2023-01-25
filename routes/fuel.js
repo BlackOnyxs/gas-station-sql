@@ -9,13 +9,13 @@ const router = Router();
 
 router.get('/', [
     jwtValidate,
-    hasRole('ADMIN_ROLE', 'SALE_ROLE'),
+    hasRole('ADMIN_ROLE', 'DISPENSER_ROLE'),
     fieldsValidator
 ], fuelsGet );
 
 router.get('/:id', [
     jwtValidate,
-    hasRole('ADMIN_ROLE', 'SALE_ROLE'),
+    hasRole('ADMIN_ROLE', 'DISPENSER_ROLE'),
     check('id', 'El id es requerido').not().isEmpty(),
     fieldsValidator
 ], fuelGetById );
