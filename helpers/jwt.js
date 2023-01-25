@@ -6,7 +6,7 @@ const generateJwt = (uid, name) => {
         const payload = { uid, name };
 
         jwt.sign( payload, process.env.SEED, {
-            expiresIn: '2h'
+            expiresIn: '8h'
         }, (err, token) =>{
             if ( err) {
                 console.log(err);

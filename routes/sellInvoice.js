@@ -13,13 +13,9 @@ router.get('/', [
     fieldsValidator
 ], sellInvoicesGet );
 
-router.post('/mobile/owner', [
+router.get('/mobile/owner', [
     jwtValidate,
-    hasRole('ADMIN_ROLE','SALE_ROLE'),
-    check('dispenser', 'Error Id').isMongoId(),
-    check('dispenser').custom( dispenser => existObject( dispenser, 'User') ),
-    check('schedule', 'Error Id').isMongoId(),
-    check('schedule').custom( schedule => existObject( schedule, 'Schedule') ),
+    hasRole('ADMIN_ROLE','DISPENSER_ROLE'),
     fieldsValidator
 ], sellInvoicesOwner );
 
@@ -33,9 +29,8 @@ router.get('/:id', [
 
 router.post('/mobile', [
     jwtValidate,
-    hasRole('ADMIN_ROLE','SALE_ROLE'),
+    hasRole('ADMIN_ROLE','DISPENSER_ROLE'),
     check('product', 'El producto es requerido').not().isEmpty(),
-    check('dispenser', 'El dispenser es requerido').not().isEmpty(),
     check('quantity', 'El quantity es requerido').not().isEmpty(),
     check('quantity', 'quantity must be numeric').isNumeric(),
     check('price', 'El price es requerido').not().isEmpty(),
@@ -48,7 +43,7 @@ router.post('/mobile', [
 router.put('/:id', [
     jwtValidate,
     isAdmin,
-    hasRole('ADMIN_ROLE','SALE_ROLE'),
+    hasRole('ADMIN_ROLE','DISPENSER_ROLE'),
     check('id', 'El id es requerido').not().isEmpty(),
     check('product', 'El producto es requerido').not().isEmpty(),
     check('dispenser', 'El dispenser es requerido').not().isEmpty(),

@@ -27,7 +27,7 @@ const hasRole = ( ...roles ) => {
                msg: 'Se quiere verificar el rol sin validar el token primero' 
             });
         }
-
+        console.log(req.user.rol)
         if ( !roles.includes( req.user.rol ) ) {
             return res.status(401).json({
                 msg: `El servicio requiere uno de estos roles ${ roles }`
