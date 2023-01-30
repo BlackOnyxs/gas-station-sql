@@ -49,6 +49,8 @@ const jwtValidate = async(req, res = response, next) => {
     }
 }
 
+
+
 module.exports = {
     jwtValidate
 }

@@ -91,6 +91,11 @@ const loginDispenser = async (req, res = response) => {
                 numer: turnResponse[0].ErrorNumber
             });
         }
+        // const todayTurns = []
+        // turnResponse.forEach( turn => {
+        //     console.log(DateTime.fromJSDate(date))
+        //     // if (DateTime)
+        // })
         console.log(turnResponse[0])
         //Si hay turnos creo el intervalo, con la fecha inicial y final
         const {_id, date, total, dispenser, turn, status, updatedBy, createdAt, updatedAt} = scheduleResponse(turnResponse[0]);
@@ -101,10 +106,17 @@ const loginDispenser = async (req, res = response) => {
         let endDate = DateTime.now().set({ hour: Number(endTime[0]), minute: endTime[1] })
         const i = Interval.fromDateTimes(startDate, endDate);
         //Verifico si las contiene
+        
         if ( !i.contains( DateTime.now() ) ){
-            
+            // if ( (startDate.c.day - DateTime.now().day) === 0){
+
+            // }
+        
             let nextDuration = null
+            // console.log(date)
+            console.log({days: startDate.c.day - DateTime.now().day})
             if ( i.length('hours') < 24 ) {
+                
                 nextDuration = i.length('hours')
                 return res.status(400).json({
                     msg: `En este momento no tiene turno. Su siguiente turno es en ${nextDuration}`
@@ -116,6 +128,8 @@ const loginDispenser = async (req, res = response) => {
                 })
             }
         }
+    
+    
 
         const token = await generateJwt( user.codigo_cedula, user.nombre );
         

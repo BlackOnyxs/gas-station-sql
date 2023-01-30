@@ -1,13 +1,20 @@
 
-const express = require('express');
-const cors = require('cors');
+const express  = require('express');
+const cors     = require('cors');
+const http     = require('http');
+const socketio = require('socket.io');
+
 const { dbConnection } = require('../database/config');
+const Sockets = require('./sockets');
 
 class Server {
 
     constructor() {
         this.app = express();
         this.port =  process.env.PORT;
+
+        this.server = http.createServer( this.app );
+
         this.paths = {
             auth: '/api/auth',
             buyInvoice: '/api/buyinvoice',
@@ -20,6 +27,8 @@ class Server {
             turn: '/api/turns',
             users: '/api/users',
         };
+
+        this.io = socketio( this.server, {})
 
         //DB connection
         this.dbConnection();
@@ -53,6 +62,9 @@ class Server {
         this.app.use( express.static('public') );
     }
 
+    socketsConfig(){
+        new Sockets( this.io );
+    }
 
     routes(){
         
@@ -68,11 +80,15 @@ class Server {
         this.app.use( this.paths.users, require('../routes/users' ) );
     }
 
-    listen() {
-        this.app.listen(this.port, () => {
+    execute() {
+
+        this.socketsConfig();
+        
+        this.server.listen(this.port, () => {
             console.log('Server listen', this.port );
         });
     }
+
 }
 
 module.exports = Server;

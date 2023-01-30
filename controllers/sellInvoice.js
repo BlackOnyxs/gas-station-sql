@@ -58,20 +58,29 @@ const sellInvoicesOwner = async( req, res = response ) => {
     }
 }
 
-const sellInvoiceGetById = async( req, res = response ) => {
-    const { id } = req.params;
-
+const sellInvoiceGetById = async( id, productType ) => {
+    // const { id } = req.params;
+    // const { productType } = req.query;
     try {
-        const invoice = await SellInvoice.findById(id)
-                                         .populate('dispenser', 'name')
-                                         .populate('product', ['name', 'sellPrice'] )
-                                         .populate('client', 'name');
-        return res.json( invoice );
+        let model = null;
+        if ( productType != 'fuels' ) {
+            model = 'FacturaVentaAceite_PK'
+        } else {
+            model = 'FacturaVentaCombustible_PK'
+        }
+
+        const [ resp ] = await dbConnection.query(`exec ${model} '${id}'`);
+        
+        const invoice = sellInvoiceResponse(resp);
+
+        // return res.json({
+        //     invoice
+        // }); 
     } catch (error) {
         console.log(error)
         return res.status(500).json({
             msg: 'Error server.' 
-        })
+        });
     }
 }
 
@@ -88,7 +97,7 @@ const sellInvoicePost = async( req, res = response ) => {
         }
 
         const [ resp ] = await dbConnection.query(`exec ${model} '${uuid()}', ${total}, '${moment(date).format('YYYY/MM/DD')}', ${quantity}, ${price}, '${dispenser}', '${product}', '${client}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`)
-        console.log(resp)
+        // console.log(resp)
         if ( resp[0].ErrorMessage ) {
             if ( resp[0].ErrorNumber === 50000 ) {
                 return res.status(400).json({

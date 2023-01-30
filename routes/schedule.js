@@ -1,8 +1,8 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
 
-const { scheduleGet, scheduleGetById, schedulePost, schedulePut, scheduleDelete } = require('../controllers/schedule');
-const { jwtValidate, fieldsValidator, isAdmin } = require('../middlewares');
+const { scheduleGet, scheduleGetById, schedulePost, schedulePut, scheduleDelete, scheduleByDispenser } = require('../controllers/schedule');
+const { jwtValidate, fieldsValidator, isAdmin, hasRole } = require('../middlewares');
 const { existObject } = require('../middlewares/db-validators');
 
 const router = Router();
@@ -13,13 +13,19 @@ router.get('/', [
     fieldsValidator
 ], scheduleGet );
 
-router.get('/:id', [
+// router.get('/:id', [
+//     jwtValidate,
+//     isAdmin,
+//     check('id', 'Error Id').isMongoId(),
+//     check('id').custom( id => existObject( id, 'Schedule') ),
+//     fieldsValidator
+// ], scheduleGetById );
+
+router.get('/mobile', [
     jwtValidate,
-    isAdmin,
-    check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'Schedule') ),
+    hasRole('ADMIN_ROLE', 'DISPENSER_ROLE'),
     fieldsValidator
-], scheduleGetById );
+], scheduleByDispenser );
 
 router.post('/', [
     jwtValidate,
@@ -29,6 +35,7 @@ router.post('/', [
     check('date', 'date is required').not().isEmpty(),
     fieldsValidator
 ], schedulePost );
+
 
 router.put('/:id', [
     jwtValidate,

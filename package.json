@@ -14,13 +14,14 @@
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "express-validator": "^6.13.0",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "luxon": "^3.2.1",
     "moment": "^2.29.4",
     "mongoose": "^6.0.12",
     "mssql": "^9.0.1",
     "nodemon": "^2.0.14",
     "sequelize": "^6.21.4",
+    "socket.io": "^4.5.4",
     "uuidv4": "^6.2.13"
   }
 }

@@ -22,8 +22,7 @@ router.get('/mobile/owner', [
 router.get('/:id', [
     jwtValidate,
     isAdmin,
-    check('id', 'Error Id').isMongoId(),
-    check('id').custom( id => existObject( id, 'SellInvoice') ),
+    check('id', 'El id es requerido').not().isEmpty(),
     fieldsValidator
 ], sellInvoiceGetById );
 
@@ -36,6 +35,7 @@ router.post('/mobile', [
     check('price', 'El price es requerido').not().isEmpty(),
     check('price', 'price must be numeric').isNumeric(),
     check('total', 'total must be numeric').isNumeric(),
+    check('total', 'total debe ser mayor a 1').custom( (value) => value > 0 ),
     check('total', 'total is required').notEmpty(),
     fieldsValidator
 ], sellInvoicePost );

@@ -3,9 +3,6 @@ const moment = require('moment');
 const { dbConnection } = require('../database/config');
 const { scheduleResponse } = require('../helpers/responsesql');
 
-const { Schedule } = require('../models');
-
-
 const scheduleGet = async( req, res = response ) => {
     const { limit = 5, at = 0 } = req.query;
 
@@ -21,14 +18,10 @@ const scheduleGet = async( req, res = response ) => {
 }
 
 const scheduleGetById = async( req, res = response ) => {
-    const { id } = req.params;
-
+    const { date, turn } = req.body;
+    
     try {
-        const schedule = await Schedule.findById(id)
-                                     .populate('createdBy', 'name')
-                                     .populate('dispenser', 'name')
-                                     .populate('turn', ['startTime', 'endTime'] );
-        return res.json( schedule );
+       const [] = await dbConnection.query(`exec Horario_ObtenerPK '${moment().format('YYYY/MM/DD').concat(' 00:00:00')}', '${user.codigo_cedula}'`)
     } catch (error) {
         console.log(error)
         return res.status(500).json({
@@ -36,6 +29,19 @@ const scheduleGetById = async( req, res = response ) => {
         })
     }
 }
+
+const scheduleByDispenser = async( req, res = response ) => {
+    const { limit = 5, at = 0, date = moment().format('YYYY/MM/DD') } = req.body;
+    try {
+        const [schedule, count]= await dbConnection.query(`exec Horario_Despachador ${ Number(limit) }, ${ Number(at) }, '${date}', '${req.user.codigo_cedula}'`);
+        return res.json({ count, schedule: scheduleResponse(schedule) });
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            msg: 'Error server.' 
+        });
+    }
+} 
 
 const schedulePost = async( req, res = response ) => {
     const { turn, dispenser, date, total } = req.body;
@@ -144,6 +150,7 @@ const scheduleDelete = async( req, res = response ) => {
 module.exports = {
     scheduleGet,
     scheduleGetById,
+    scheduleByDispenser,
     schedulePost,
     schedulePut,
     scheduleDelete,
