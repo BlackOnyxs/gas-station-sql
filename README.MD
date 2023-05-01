@@ -9,4 +9,4 @@
 5. Ejecutar el archivo generar_db.sql
 6. Ejecutar el archivo data_test.sql
 7. Levantar: ```nodemon app```
-9. [Endpoints-Postman](https://api.postman.com/collections/11310403-cae44494-502d-4dc4-9749-7d7ac8139625?access_key=PMAT-01GZC9S5JV1XWQN4XPF2V2QQ4H) 
+9. [Endpoints-Postman](https://documenter.getpostman.com/view/11310403/2s93eU2Dzb)
