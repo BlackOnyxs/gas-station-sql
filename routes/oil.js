@@ -1,11 +1,12 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
 
-const { oilsGet, oilGetById, oilPost, oilPut, oilDelete } = require('../controllers/oil');
+const { oilsGet, oilGetById, oilPost, oilPut, oilDelete, oilInventoryQuantity } = require('../controllers/oil');
 const { fieldsValidator, isAdmin, jwtValidate, hasRole } = require('../middlewares');
 const { existObject } = require('../middlewares/db-validators');
 
 const router = Router();
+
 
 router.get('/', [
     jwtValidate,

@@ -112,7 +112,6 @@ const scheduleResponse = ( data ) => {
 }
 
 const fuelResponse = ( data ) => {
-    console.log(data)
     if ( Array.isArray( data ) ) {
         const newFuels = [];
         data.forEach( f => {

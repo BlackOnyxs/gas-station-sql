@@ -18,9 +18,7 @@ const generateJwt = (uid, name) => {
 }
 const validateJWTSockets = ( token = '' ) => {
     try {
-        console.log(token)
         const { uid } = jwt.verify( token, process.env.SEED );
-        console.log({uid})
         return [ true, { uid } ]; 
     } catch (error) {
         return [false, null]

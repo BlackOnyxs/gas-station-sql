@@ -43,7 +43,7 @@ const sellInvoicesOwner = async( req, res = response ) => {
             model = 'FacturaVentaCombustible_Despachador'
         }
 
-        const [ invoices, count ] = await dbConnection.query(`exec ${model} ${limit}, ${at}, '${moment().format('YYYY/MMM/DD')}', '${req.user.codigo_cedula}'`);
+        const [ invoices, count ] = await dbConnection.query(`exec ${model} ${limit}, ${at}, '${moment().format('DD-MM-yyyy HH:mm:ss')}', '${req.user.codigo_cedula}'`);
         
         return res.json({
             // invoices:  providerResponse(invoices),
@@ -88,6 +88,7 @@ const sellInvoiceGetById = async( id, productType ) => {
 
 const sellInvoicePost = async( req, res = response ) => {
     let { product, client, dispenser, quantity, total, productType, date, price } = req.body;
+    console.log(date )
     try {
         let model = null;
         if ( productType[0] != 'fuels' ) {
@@ -96,9 +97,9 @@ const sellInvoicePost = async( req, res = response ) => {
             model = 'FacturaVentaCombustible_Crear'
         }
 
-        const [ resp ] = await dbConnection.query(`exec ${model} '${uuid()}', ${total}, '${moment(date).format('YYYY/MM/DD')}', ${quantity}, ${price}, '${dispenser}', '${product}', '${client}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`)
-        // console.log(resp)
+        const [ resp ] = await dbConnection.query(`exec ${model} '${uuid()}', ${total}, '${moment(date).format('DD-MM-yyyy HH:mm:ss')}', ${quantity}, ${price}, '${dispenser}', '${product}', '${client}', '${moment().format('DD-MM-yyyy HH:mm:ss')}', '${req.user.codigo_cedula}'`)
         if ( resp[0].ErrorMessage ) {
+            console.log(resp[0].ErrorMessage, resp[0].ErrorNumber)
             if ( resp[0].ErrorNumber === 50000 ) {
                 return res.status(400).json({
                     msg: resp[0].ErrorMessage
@@ -133,9 +134,9 @@ const sellInvoicePut = async( req, res = response ) => {
         } else {
             model = 'FacturaVentaCombustible_Actualizar'
         }
-
-        const [ resp ] = await dbConnection.query(`exec ${model} '${id}', ${total}, '${moment(date).format('YYYY/MM/DD')}', ${quantity}, ${price}, '${dispenser}', '${product}', '${client}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`)
-        console.log(resp)
+        console.log(date)
+        const [ resp ] = await dbConnection.query(`exec ${model} '${id}', ${total}, '${date}', ${quantity}, ${price}, '${dispenser}', '${product}', '${client}', '${moment().format('DD-MM-yyyy HH:mm:ss')}', '${req.user.codigo_cedula}'`)
+        
         if ( resp[0].ErrorMessage ) {
             if ( resp[0].ErrorNumber === 50000 ) {
                 return res.status(400).json({
@@ -172,7 +173,7 @@ const sellInvoiceDelete = async( req, res = response ) => {
             model = 'FacturaVentaCombustible_Eliminar'
         }
 
-        const [ resp ] = await dbConnection.query(`exec ${model} '${id}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`)
+        const [ resp ] = await dbConnection.query(`exec ${model} '${id}', '${moment().format('DD-MM-yyyy HH:mm:ss')}', '${req.user.codigo_cedula}'`)
 
         if ( resp[0].ErrorMessage ) {
             if ( resp[0].ErrorNumber === 50000 ) {

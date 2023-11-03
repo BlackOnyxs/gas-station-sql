@@ -3,7 +3,6 @@ const { check } = require('express-validator');
 
 const { fuelsGet, fuelGetById, fuelPost, fuelPut, fuelDelete } = require('../controllers/fuel');
 const { jwtValidate, hasRole, fieldsValidator, isAdmin } = require('../middlewares');
-const { existObject } = require('../middlewares/db-validators');
 
 const router = Router();
 
@@ -27,7 +26,7 @@ router.post('/', [
     check('sellPrice', 'Price is required').not().isEmpty(),
     // check('type', 'Type is required').not().isEmpty(),
     check('octane', 'Octane is required').not().isEmpty(),
-    check('inventory', 'Inventory is required').not().isEmpty(),
+    // check('inventory', 'Inventory is required').not().isEmpty(),
     fieldsValidator
 ], fuelPost );
 

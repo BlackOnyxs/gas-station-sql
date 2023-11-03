@@ -19,6 +19,7 @@ class Server {
             auth: '/api/auth',
             buyInvoice: '/api/buyinvoice',
             client: '/api/clients',
+            dashboard: '/api/dashboard',
             fuels: '/api/fuels',
             oils: '/api/oils',
             providers: '/api/providers',
@@ -71,6 +72,7 @@ class Server {
         this.app.use( this.paths.auth, require('../routes/auth' ) );
         this.app.use( this.paths.buyInvoice, require('../routes/buyInvoice' ) );
         this.app.use( this.paths.client, require('../routes/client' ) );
+        this.app.use( this.paths.dashboard, require('../routes/dashboard' ) );
         this.app.use( this.paths.fuels, require('../routes/fuel' ) );
         this.app.use( this.paths.oils, require('../routes/oil' ) );
         this.app.use( this.paths.providers, require('../routes/provider' ) );

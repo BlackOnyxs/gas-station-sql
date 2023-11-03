@@ -39,10 +39,10 @@ const fuelGetById = async( req, res = response ) => {
 }
 
 const fuelPost = async( req, res = response ) => {
-    const { name, sellPrice, type, octane, inventory } = req.body;
+    const { name, sellPrice, octane } = req.body;
 
     try {
-        const [ resp ] = await dbConnection.query(`exec Combustible_Crear '${uuid()}', ${sellPrice}, ${inventory}, '${octane}', '${name}', '${moment().format('YYYY/MM/DD')}', '${req.user.codigo_cedula}'`);
+        const [ resp ] = await dbConnection.query(`exec Combustible_Crear '${uuid()}', ${sellPrice}, '${octane}', '${name}', '${moment().format('YYYY-MM-DD hh:mm:ss')}', '${req.user.codigo_cedula}'`);
         if ( resp[0].ErrorMessage ) {
             if ( resp[0].ErrorNumber === 50000 ) {
                 return res.status(400).json({
